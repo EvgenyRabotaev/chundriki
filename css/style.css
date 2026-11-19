@@ -398,3 +398,11 @@ dialog h3 { margin: 0 0 4px; }
 .btn-discord { background: #5865f2; color: #fff; font-size: 20px; padding: 16px 34px; border-radius: 10px; }
 .btn-discord:hover { background: #6b77ff; }
 .join-note { color: var(--sand); font-size: 14px; }
+
+/* Hero buttons palette */
+.btn-sand { background: var(--sand); color: #1d1a10; }
+.btn-sand:hover { background: #d8cb9f; }
+.hero .btn-sand { box-shadow: 0 10px 30px -10px rgba(200,185,138,.55); }
+.btn-khaki { background: rgba(107,122,58,.85); color: #f1eedf; border-color: #8a9b4e; }
+.btn-khaki:hover { background: #7d8e44; }
+.hero .btn-khaki { box-shadow: 0 10px 30px -10px rgba(138,155,78,.6); backdrop-filter: blur(6px); }

@@ -40,7 +40,7 @@ def page(file, title, desc, body, active, extra_head='', body_class='subpage', s
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
-{extra_head}  <link rel="stylesheet" href="css/style.css?v={V}">
+{extra_head}  <link rel="stylesheet" href="css/style.css?v=1{V}">
 </head>
 <body class="{body_class}" data-page="{file[:-5]}">
   <header class="topbar">

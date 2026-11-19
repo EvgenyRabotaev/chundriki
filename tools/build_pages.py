@@ -21,6 +21,7 @@ def page(file, title, desc, body, active, extra_head='', body_class='subpage', s
 <html lang="ru">
 <head>
   <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">  <!-- TEMP: убрать, когда сайт откроем для поиска -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{t}</title>
   <meta name="description" content="{d}">

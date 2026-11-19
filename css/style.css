@@ -265,3 +265,5 @@ dialog h3 { margin: 0 0 4px; }
 .field small { color: var(--muted); font-size: 12px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 .denied { text-align: center; max-width: 480px; margin: 60px auto; }
+
+.roster-more { grid-column: 1 / -1; display: flex; justify-content: center; padding-top: 6px; }

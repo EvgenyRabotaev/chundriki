@@ -5,6 +5,8 @@ import { esc, fmtDate, toast, copyText, ROLE_CLASS } from './util.js';
 // ---------- Состав ----------
 let members = [];
 let roleFilter = '';
+let expanded = false;
+const previewLimit = () => (window.innerWidth <= 600 ? 6 : 9);
 const listEl = document.getElementById('roster-list');
 const searchEl = document.getElementById('roster-search');
 
@@ -27,7 +29,13 @@ function renderRoster() {
     (!roleFilter || m.clan_role === roleFilter) &&
     (!q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q))));
   if (!rows.length) { listEl.innerHTML = '<p class="muted">Никого не нашли. Может, он в кустах?</p>'; return; }
-  listEl.innerHTML = rows.map((m) => `
+  const filtering = !!(q || roleFilter);
+  const limit = previewLimit();
+  const shown = (filtering || expanded) ? rows : rows.slice(0, limit);
+  const toggle = (!filtering && rows.length > limit)
+    ? `<div class="roster-more"><button class="btn btn-ghost" id="roster-toggle">${expanded ? 'Свернуть' : `Показать всех (${rows.length})`}</button></div>`
+    : '';
+  listEl.innerHTML = shown.map((m) => `
     <article class="member ${ROLE_CLASS[m.clan_role] || ''}">
       <div class="member-top">
         <h3 class="nick" title="${esc(m.game_nick)}">${esc(m.game_nick)}</h3>
@@ -36,10 +44,16 @@ function renderRoster() {
       <div class="member-row"><span class="lbl">Discord</span><span class="val">${discordCell(m)}</span></div>
       <div class="member-row"><span class="lbl">Имя</span><span class="val">${esc(m.real_name || '—')}</span></div>
       <div class="member-row"><span class="lbl">В клане с</span><span class="val">${fmtDate(m.joined_at)}</span></div>
-    </article>`).join('');
+    </article>`).join('') + toggle;
 }
 
 listEl.addEventListener('click', async (e) => {
+  if (e.target.closest('#roster-toggle')) {
+    expanded = !expanded;
+    renderRoster();
+    if (!expanded) document.getElementById('roster').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
   const b = e.target.closest('.copy-btn');
   if (!b) return;
   await copyText(b.dataset.copy);

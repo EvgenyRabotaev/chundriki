@@ -335,7 +335,7 @@ dialog h3 { margin: 0 0 4px; }
 .news-img { position: relative; aspect-ratio: 16/9; background: #0c0e0f; overflow: hidden; }
 .news-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .news-img.ph { background: linear-gradient(135deg, rgba(18,20,22,.55), rgba(18,20,22,.2)), url(../assets/hero-bg-1280.webp) center/cover; display: grid; place-items: center; }
-.news-img.ph span { font-family: var(--font-head); font-size: 26px; letter-spacing: 3px; color: rgba(255,255,255,.55); }
+.news-img.ph > span:first-child { font-family: var(--font-head); font-size: 26px; letter-spacing: 3px; color: rgba(255,255,255,.55); }
 .news-img .pin { position: absolute; left: 8px; top: 8px; font-size: 12px; font-weight: 700; background: rgba(18,20,22,.85); color: var(--sand); padding: 3px 8px; border-radius: 999px; }
 .news-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .news-body time, .news-detail time { color: var(--olive-2); font-size: 13px; font-family: monospace; }

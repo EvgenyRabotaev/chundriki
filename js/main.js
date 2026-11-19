@@ -12,9 +12,9 @@ function discordCell(m) {
   const nick = esc(m.discord_nick || '—');
   if (!m.discord_nick) return '<span class="muted">—</span>';
   if (m.discord_id) {
-    return `<a class="discord-link" href="https://discord.com/users/${esc(m.discord_id)}" target="_blank" rel="noopener" title="Открыть профиль в Discord">${discordIcon()}${nick}</a>`;
+    return `<a class="discord-link" href="https://discord.com/users/${esc(m.discord_id)}" target="_blank" rel="noopener" title="${nick} — открыть профиль в Discord">${discordIcon()}<span class="trunc">${nick}</span></a>`;
   }
-  return `<span class="discord-nick">${discordIcon()}${nick}</span>
+  return `<span class="discord-nick" title="${nick}">${discordIcon()}<span class="trunc">${nick}</span></span>
     <button class="copy-btn" data-copy="${esc(m.discord_nick)}" title="Скопировать ник" aria-label="Скопировать ник ${nick}"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H8V7h11v14Z"/></svg></button>`;
 }
 function discordIcon() {

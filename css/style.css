@@ -180,9 +180,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--pink); outl
 .role.role-leader { background: var(--pink); color: #1a0b12; }
 .role.role-admin { background: var(--sand); color: #1d1a10; }
 .member-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 4px 0; }
-.member-row .lbl { color: var(--muted); }
-.member-row .val { text-align: right; display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-.discord-link, .discord-nick { display: inline-flex; align-items: center; gap: 5px; word-break: break-all; }
+.member-row .lbl { color: var(--muted); flex: none; }
+.member-row .val { text-align: right; display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; flex: 1; }
+.discord-link, .discord-nick { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.copy-btn { flex: none; }
 .discord-link { color: #8fa2ff; text-decoration: none; font-weight: 500; }
 .discord-link:hover { text-decoration: underline; }
 .dc-ico { width: 15px; height: 15px; flex: none; color: #8fa2ff; }

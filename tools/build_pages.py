@@ -113,14 +113,11 @@ preload = '''  <link rel="preload" as="image" href="assets/hero-bg-3840.webp" me
 idx = hero + '''
   <main>
 ''' + pv('// сводки', 'Новости', 'news.html', '      <div id="news-list" class="news-grid" data-limit="3"><p class="muted">Загружаем новости…</p></div>', 'news') \
-  + pv('// килкам', 'Лучшие моменты', 'moments.html', '      <div id="video-list" class="videos" data-limit="3"><p class="muted">Загружаем видео…</p></div>', 'videos') \
   + pv('// сквад', 'Состав', 'roster.html', '''      <p class="roster-count muted">В клане сейчас: <b id="squad-count">…</b></p>
-      <div id="roster-list" class="roster" data-teaser="1"><p class="muted">Загружаем состав…</p></div>''', 'roster', 'Весь состав →') \
-  + '''    <section class="section" id="join">
-      <div class="section-head"><span class="kicker">// вербовка</span><h2>Вступить в клан</h2></div>
-''' + recruit_teaser() + '''
-    </section>
-  </main>
+      <div id="roster-list" class="roster" data-teaser="1" data-limit="9"><p class="muted">Загружаем состав…</p></div>
+      <div class="roster-more"><a class="btn btn-ghost" href="roster.html">Смотреть весь состав</a></div>''', 'roster', 'Весь состав →') \
+  + pv('// килкам', 'Лучшие моменты', 'moments.html', '      <div id="video-list" class="videos" data-limit="3"><p class="muted">Загружаем видео…</p></div>', 'videos') \
+  + '''  </main>
 '''
 page('index.html', 'Chundriki — PUBG клан', 'Клан Chundriki в PUBG: новости игры, состав, лучшие моменты и зал славы. Мы — F4M (Family).', idx, 'index.html', preload, 'home', '  <script src="js/hero.js" defer></script>\n')
 

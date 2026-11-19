@@ -77,7 +77,7 @@ function renderRoster() {
     (!roleFilter || m.clan_role === roleFilter) &&
     (!q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q))));
   if (!rows.length) { listEl.innerHTML = '<p class="muted">Никого не нашли. Может, он в кустах?</p>'; return; }
-  const shown = teaser ? rows.filter((m) => m.clan_role !== 'боец') : rows;
+  const shown = teaser ? rows.slice(0, +listEl.dataset.limit || 9) : rows;
   const toggle = '';
   listEl.innerHTML = shown.map((m) => `
     <article class="member ${ROLE_CLASS[m.clan_role] || ''}" data-id="${m.id}">

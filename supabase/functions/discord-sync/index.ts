@@ -85,7 +85,7 @@ async function run() {
       const inGuild = humans.some((m) => m.user.id === s.discord_id);
       const { error } = await sb.from('former_members').insert({
         game_nick: s.game_nick, discord_nick: s.discord_nick, discord_id: s.discord_id, clan_role: s.clan_role,
-        real_name: s.real_name, joined_at: s.joined_at, left_at: new Date().toISOString().slice(0, 10), leave_type: 'ушёл сам',
+        real_name: s.real_name, joined_at: s.joined_at, left_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' }), leave_type: 'ушёл сам',
         reason: inGuild ? 'Автоматически: снята роль «Чундрики»' : 'Автоматически: вышел с сервера',
       });
       if (error) { console.error('former insert', error.message); continue; }

@@ -30,7 +30,7 @@ function renderRoster() {
   listEl.innerHTML = rows.map((m) => `
     <article class="member ${ROLE_CLASS[m.clan_role] || ''}">
       <div class="member-top">
-        <h3 class="nick">${esc(m.game_nick)}</h3>
+        <h3 class="nick" title="${esc(m.game_nick)}">${esc(m.game_nick)}</h3>
         <span class="role ${ROLE_CLASS[m.clan_role] || ''}">${esc(m.clan_role || '—')}</span>
       </div>
       <div class="member-row"><span class="lbl">Discord</span><span class="val">${discordCell(m)}</span></div>

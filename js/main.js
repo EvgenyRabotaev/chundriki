@@ -50,7 +50,7 @@ function showTip(btn) {
   const card = btn.closest('.member');
   const b = badgeById(card?.dataset.id, btn.dataset.badge);
   if (!b) return;
-  const when = fmtMonth(b.awarded_at);
+  const when = b.awarded_label || fmtMonth(b.awarded_at);
   tip.innerHTML = `<b>${esc((b.emoji && !b.icon_url ? b.emoji + ' ' : '') + b.title)}</b>${b.description ? `<span>${esc(b.description)}</span>` : ''}${b.note ? `<span>${esc(b.note)}</span>` : ''}${when ? `<em>${esc(when)}</em>` : ''}`;
   tip.hidden = false; tipFor = btn;
   const r = btn.getBoundingClientRect(), t = tip.getBoundingClientRect();
@@ -228,7 +228,7 @@ function renderHall() {
     const icon = b.icon_url ? `<img src="${esc(b.icon_url)}" alt="" width="72" height="72" loading="lazy">` : `<span class="hall-emoji">${esc(b.emoji || '🏅')}</span>`;
     return `<article class="hall-card"><div class="hall-icon">${icon}</div><div class="hall-info">
       <h3>${esc(b.title)}</h3>${b.description ? `<p>${esc(b.description)}</p>` : ''}
-      <ul class="holders">${holders.length ? holders.map(({ m, x }) => `<li><b>${esc(m.game_nick)}</b>${x.awarded_at ? `<span>${esc(fmtMonth(x.awarded_at))}</span>` : ''}${x.note ? `<small>${esc(x.note)}</small>` : ''}</li>`).join('') : '<li class="muted">Пока никто не получил</li>'}</ul>
+      <ul class="holders">${holders.length ? holders.map(({ m, x }) => `<li><b>${esc(m.game_nick)}</b>${(x.awarded_label || x.awarded_at) ? `<span>${esc(x.awarded_label || fmtMonth(x.awarded_at))}</span>` : ''}${x.note ? `<small>${esc(x.note)}</small>` : ''}</li>`).join('') : '<li class="muted">Пока никто не получил</li>'}</ul>
     </div></article>`;
   }).join('');
 }

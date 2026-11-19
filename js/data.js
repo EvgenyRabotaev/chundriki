@@ -33,11 +33,11 @@ export async function getMembers() {
   // значки: отдельный запрос; если он упал, состав всё равно показываем
   const byMember = new Map();
   try {
-    const mb = unwrap(await sb.from('member_badges').select('member_id, awarded_at, note, badges(id, slug, title, description, icon_url, emoji)'));
+    const mb = unwrap(await sb.from('member_badges').select('member_id, awarded_at, awarded_label, note, badges(id, slug, title, description, icon_url, emoji)'));
     for (const r of mb) {
       if (!r.badges) continue;
       if (!byMember.has(r.member_id)) byMember.set(r.member_id, []);
-      byMember.get(r.member_id).push({ ...r.badges, awarded_at: r.awarded_at, note: r.note });
+      byMember.get(r.member_id).push({ ...r.badges, awarded_at: r.awarded_at, awarded_label: r.awarded_label, note: r.note });
     }
   } catch (e) { console.warn('badges:', e.message); }
   for (const m of rows) m.badges = (byMember.get(m.id) || []).sort((a, b) => String(a.awarded_at || '').localeCompare(String(b.awarded_at || '')) || a.id - b.id);

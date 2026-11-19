@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
   <header class="topbar">
@@ -53,6 +53,7 @@
         <button class="tab" data-tab="former">Ушедшие</button>
         <button class="tab" data-tab="videos">Видео</button>
         <button class="tab" data-tab="badges">Значки</button>
+        <button class="tab" data-tab="news">Новости</button>
       </div>
 
       <section id="tab-members">
@@ -87,6 +88,17 @@
           <tbody id="videos-body"></tbody>
         </table></div>
       </section>
+      <section id="tab-news" hidden>
+        <div class="toolbar">
+          <input type="search" id="news-search" placeholder="Поиск по заголовку…">
+          <button class="btn btn-pink btn-sm" id="add-news">+ Добавить новость</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Дата</th><th>Заголовок</th><th>Источник</th><th>Закреп</th><th></th></tr></thead>
+          <tbody id="news-body"></tbody>
+        </table></div>
+      </section>
+
       <section id="tab-badges" hidden>
         <div class="toolbar">
           <span class="muted">Выдать или забрать значок: «Значки» в строке участника на вкладке «Состав».</span>

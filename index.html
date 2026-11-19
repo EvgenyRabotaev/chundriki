@@ -4,31 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chundriki — PUBG клан</title>
-  <meta name="description" content="Клан Chundriki в PUBG: история, состав и лучшие моменты.">
+  <meta name="description" content="Клан Chundriki в PUBG: новости игры, состав, лучшие моменты и зал славы. Мы — F4M (Family).">
   <meta name="theme-color" content="#16181a">
+  <link rel="canonical" href="https://evgenyrabotaev.github.io/chundriki/">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/favicon-180.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Chundriki">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:url" content="https://evgenyrabotaev.github.io/chundriki/">
   <meta property="og:title" content="Chundriki — PUBG клан">
-  <meta property="og:image" content="https://evgenyrabotaev.github.io/chundriki/assets/favicon-512.png">
+  <meta property="og:description" content="Клан Chundriki в PUBG: новости игры, состав, лучшие моменты и зал славы. Мы — F4M (Family).">
+  <meta property="og:image" content="https://evgenyrabotaev.github.io/chundriki/assets/hero-bg-1280.webp">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="assets/hero-bg-3840.webp" media="(min-width: 1921px), (min-width: 901px) and (min-resolution: 1.5dppx)">
   <link rel="preload" as="image" href="assets/hero-bg-1920.webp" media="(min-width: 901px) and (max-width: 1920px) and (max-resolution: 1.49dppx)">
   <link rel="preload" as="image" href="assets/hero-bg-1280.webp" media="(max-width: 900px)">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=11">
 </head>
-<body>
+<body class="home" data-page="index">
   <header class="topbar">
-    <a class="brand" href="#top"><img src="assets/favicon-32.png" alt="" width="28" height="28"> CHUNDRIKI</a>
-    <nav>
-      <a href="#history">История</a>
-      <a href="#roster">Состав</a>
-      <a href="#videos">Моменты</a>
-    </nav>
+    <a class="brand" href="index.html"><img src="assets/favicon-32.png" alt="" width="28" height="28"> CHUNDRIKI</a>
+    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button>
+    <nav id="site-nav"><a href="index.html" class="active" aria-current="page">Главная</a><a href="news.html">Новости</a><a href="roster.html">Состав</a><a href="moments.html">Моменты</a><a href="hall.html">Зал славы</a><a href="about.html">О клане</a></nav>
   </header>
-
   <section class="hero" id="top">
     <div class="hero-scene" aria-hidden="true">
       <div class="layer layer-bg" data-speed="0.55" data-mouse="10">
@@ -67,66 +70,36 @@
       <h1 class="title">CHUNDRIKI</h1>
       <p class="tagline">Пушистые снаружи. Третий шлем внутри.</p>
       <div class="cta">
-        <a class="btn btn-pink" href="#roster">Состав клана</a>
-        <a class="btn btn-ghost" href="#videos">Лучшие моменты</a>
+        <a class="btn btn-pink" href="roster.html">Состав клана</a>
+        <a class="btn btn-ghost" href="moments.html">Лучшие моменты</a>
       </div>
       <p class="hero-meta"><b id="squad-count">—</b> бойцов в строю</p>
     </div>
-    <a class="scroll-cue" href="#history" aria-label="Листать вниз"><span></span></a>
+    <a class="scroll-cue" href="#news" aria-label="Листать вниз"><span></span></a>
     <div class="hero-fade" aria-hidden="true"></div>
   </section>
 
   <main>
-    <section class="section" id="history">
-      <div class="section-head"><span class="kicker">// брифинг</span><h2>История клана</h2></div>
-      <div class="history">
-        <ul class="facts">
-          <li><b>Основан</b><span>Осень 2025</span></li>
-          <li><b>Основатели</b><span>4 (один — загадка)</span></li>
-          <li><b>Тотем</b><span>Чундрик в шлеме 3 ур.</span></li>
-          <li><b>Любимый дроп</b><span>Починки (лутаем как в Икее)</span></li>
-          <li><b>Девиз</b><span>Мы — F4M (Family)</span></li>
-        </ul>
-        <div class="history-text">
-          <p class="lead">🐾 Каждая великая семья с чего-то начинается. Наша началась осенью 2025 года с четырёх человек, которые решили, что в PUBG катастрофически не хватает чего-то розового и пушистого. 🐾</p>
-          <div class="story-cols">
-            <div><h3>Отцы- и матери-основатели</h3>
-          <ul class="story-list">
-            <li><b>💡 Крёстный отец имени.</b> Первый придумал название «Чундрики». Звучит гордо, особенно когда орёшь его в Дискорд, лёжа в синей зоне без бинтов.</li>
-            <li><b>🎨 Художник.</b> Второй нарисовал Чундрика — розового пушистого зверька в шлеме третьего уровня. С тех пор у клана есть тотем, а у врагов — вопрос «это вообще что такое?».</li>
-            <li><b>🕵️ Загадочный третий.</b> Был и третий основатель. Что именно он сделал, история умалчивает (честно, никто уже не помнит 😅). Говорят, он до сих пор лутает туалет на краю карты ради того самого глушителя.</li>
-            <li><b>👑 Глава семьи.</b> А Вика просто взяла и сделала то, до чего у остальных не дошли руки: создала клан в игре и сервер в Дискорде. Так из «прикольной идеи» получилась настоящая семья со своим домом.</li>
-          </ul></div>
-            <div><h3>Что было дальше</h3>
-          <ul class="story-list">
-            <li><b>🏠 Свой дом.</b> Сервер Чундриков стал нашим домом, а шеврон с Чундриком — гербом, под которым не стыдно даже красиво отползать в кусты.</li>
-            <li><b>🧨 Священные традиции.</b> Постепенно появились обряды: переворот УАЗика на финише, флешка в лицо как знак любви и панцерфауст в спину как посвящение. Кто их придумал? Подозреваем загадочного третьего.</li>
-            <li><b>👨‍👩‍👧‍👦 Семья растёт.</b> Из четырёх основателей нас стало почти четыре десятка — весь состав ниже. И места за семейным столом хватит ещё многим.</li>
-          </ul></div>
-          </div>
-          <p class="lead">🐾 Историю мы пишем дальше вместе. Может, следующую главу напишешь ты? Пиши в ЛС и заходи в Дискорд! 🐾</p>
-        </div>
-
-      </div>
+    <section class="section" id="news">
+      <div class="section-head split"><div><span class="kicker">// сводки</span><h2>Новости</h2></div><a class="view-all" href="news.html">Смотреть все →</a></div>
+      <div id="news-list" class="news-grid" data-limit="3"><p class="muted">Загружаем новости…</p></div>
     </section>
-
-    <section class="section" id="roster">
-      <div class="section-head"><span class="kicker">// сквад</span><h2>Состав</h2></div>
-      <div class="roster-tools">
-        <input type="search" id="roster-search" placeholder="Поиск по нику или имени…" aria-label="Поиск по составу">
-        <div class="role-filter" role="group" aria-label="Фильтр по роли">
-          <button class="chip active" data-role="">Все</button>
-          <button class="chip" data-role="глава">Глава</button>
-          <button class="chip" data-role="руководитель">Руководители</button>
-          <button class="chip" data-role="боец">Бойцы</button>
-        </div>
-      </div>
-      <div id="roster-list" class="roster"><p class="muted">Загружаем состав…</p></div>
-    </section>
-
     <section class="section" id="videos">
-      <div class="section-head"><span class="kicker">// килкам</span><h2>Лучшие моменты</h2></div>
-      <div id="video-list" class="videos"><p class="muted">Загружаем видео…</p></div>
+      <div class="section-head split"><div><span class="kicker">// килкам</span><h2>Лучшие моменты</h2></div><a class="view-all" href="moments.html">Смотреть все →</a></div>
+      <div id="video-list" class="videos" data-limit="3"><p class="muted">Загружаем видео…</p></div>
+    </section>
+    <section class="section" id="roster">
+      <div class="section-head split"><div><span class="kicker">// сквад</span><h2>Состав</h2></div><a class="view-all" href="roster.html">Весь состав →</a></div>
+      <p class="roster-count muted">В клане сейчас: <b id="squad-count">…</b></p>
+      <div id="roster-list" class="roster" data-teaser="1"><p class="muted">Загружаем состав…</p></div>
+    </section>
+    <section class="section" id="join">
+      <div class="section-head"><span class="kicker">// вербовка</span><h2>Вступить в клан</h2></div>
+      <div class="recruit">
+        <h3>🐾Мы не просто клан в PUBG, мы - F4M (Family).  А в нашей семье ценят не твой средний урон, а то, какой ты человек. Если ты ищешь место, где можно быть собой, то добро пожаловать!🐾</h3>
+        <p class="recruit-final">🐾 Готов стать Чундриком? Пиши в ЛС, заходи в Дискорд и готовься к самым ярким (во всех смыслах, спасибо флешкам) каткам в твоей жизни!🐾</p>
+        <div class="join-cta"><a class="btn btn-pink" href="about.html#join">Условия вступления</a><span data-discord-cta></span></div>
+      </div>
     </section>
   </main>
 
@@ -135,9 +108,8 @@
     <span>© Chundriki · PUBG клан</span>
     <a href="admin.html" class="footer-admin">Вход для админов</a>
   </footer>
-
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="js/hero.js" defer></script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=11"></script>
 </body>
 </html>

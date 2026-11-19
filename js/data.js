@@ -107,3 +107,17 @@ export async function awardBadge(memberId, badgeId, note, awardedAt) {
 export async function revokeBadge(memberId, badgeId) {
   unwrap(await sb.from('member_badges').delete().eq('member_id', memberId).eq('badge_id', badgeId));
 }
+
+// ---------- Новости ----------
+const NEWS_COLS = 'id, title, body, image_url, source_url, source_name, published_at, pinned';
+export async function getNews(limit) {
+  let q = sb.from('news').select(NEWS_COLS).order('pinned', { ascending: false }).order('published_at', { ascending: false });
+  if (limit) q = q.limit(limit);
+  return unwrap(await q);
+}
+export async function getNewsItem(id) {
+  return unwrap(await sb.from('news').select(NEWS_COLS).eq('id', id).maybeSingle());
+}
+export async function createNews(n) { return unwrap(await sb.from('news').insert(clean(n)).select(NEWS_COLS).single()); }
+export async function updateNews(id, n) { return unwrap(await sb.from('news').update(clean(n)).eq('id', id).select(NEWS_COLS).single()); }
+export async function deleteNews(id) { unwrap(await sb.from('news').delete().eq('id', id)); }

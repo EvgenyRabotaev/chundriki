@@ -30,3 +30,28 @@ export function fmtMonth(d) {
   const [y, m] = String(d).slice(0, 10).split('-');
   return MONTHS[+m - 1] ? `${MONTHS[+m - 1]} ${y}` : '';
 }
+const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+export function fmtLong(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return '';
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit' }).format(dt).split('-');
+  return `${+p[2]} ${MONTHS_GEN[+p[1] - 1]} ${p[0]}`;
+}
+// Безопасный мини-markdown: всё экранируется, потом размечаются абзацы, **жирный**, [ссылки](https://…), списки «- » и заголовки «## ».
+export function renderRich(text) {
+  const inline = (t) => esc(t)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  return String(text ?? '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map((blk) => {
+    const lines = blk.split('\n').filter((l) => l.trim());
+    if (!lines.length) return '';
+    if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) return '<ul>' + lines.map((l) => `<li>${inline(l.replace(/^\s*[-•*]\s+/, ''))}</li>`).join('') + '</ul>';
+    if (/^#{1,3}\s+/.test(lines[0])) {
+      const rest = lines.slice(1).join('\n');
+      return `<h3>${inline(lines[0].replace(/^#{1,3}\s+/, ''))}</h3>` + (rest ? renderRich(rest) : '');
+    }
+    return '<p>' + lines.map(inline).join('<br>') + '</p>';
+  }).join('');
+}
+export function safeUrl(u) { return /^(https?:\/\/|assets\/)/i.test(String(u || '').trim()) ? String(u).trim() : ''; }

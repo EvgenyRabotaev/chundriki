@@ -1,0 +1,46 @@
+  <section class="hero" id="top">
+    <div class="hero-scene" aria-hidden="true">
+      <div class="layer layer-bg" data-speed="0.55" data-mouse="10">
+        <picture>
+          <source media="(max-width: 900px)" srcset="assets/hero-bg-1280.webp">
+          <source media="(min-width: 1921px), (min-resolution: 1.5dppx)" srcset="assets/hero-bg-3840.webp">
+          <img class="hero-bg" src="assets/hero-bg-1920.webp" alt="" fetchpriority="high" decoding="async">
+        </picture>
+      </div>
+      <div class="layer layer-fog-back" data-speed="0.4" data-mouse="16"><div class="fog fog-back"></div></div>
+      <canvas class="embers"></canvas>
+      <div class="layer layer-mascot" data-speed="0.22" data-mouse="26">
+        <div class="mascot-wrap">
+          <div class="mascot-shadow"></div>
+          <picture>
+            <source media="(max-width: 760px)" srcset="assets/mascot-sm.webp">
+            <img class="mascot" src="assets/mascot.webp" alt="" decoding="async">
+          </picture>
+          <div class="mascot-grade"></div>
+        </div>
+      </div>
+      <div class="layer layer-fog-front" data-speed="-0.12" data-mouse="40"><div class="fog fog-front"></div><div class="fog fog-front2"></div></div>
+      <div class="hero-shade"></div>
+      <div class="hero-vignette"></div>
+      <div class="hero-grain"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <picture>
+          <source srcset="assets/patch.webp" type="image/webp">
+          <img class="patch" src="assets/patch.png" alt="Шеврон клана Chundriki" width="72" height="72">
+        </picture>
+        <span>PUBG: BATTLEGROUNDS<br><b>клан · с 2025</b></span>
+      </div>
+      <h1 class="title">CHUNDRIKI</h1>
+      <p class="tagline">Пушистые снаружи. Третий шлем внутри.</p>
+      <div class="cta">
+        <a class="btn btn-pink" href="roster.html">Состав клана</a>
+        <a class="btn btn-ghost" href="moments.html">Лучшие моменты</a>
+      </div>
+      <p class="hero-meta"><b id="squad-count">—</b> бойцов в строю</p>
+    </div>
+    <a class="scroll-cue" href="#news" aria-label="Листать вниз"><span></span></a>
+    <div class="hero-fade" aria-hidden="true"></div>
+  </section>

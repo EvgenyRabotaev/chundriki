@@ -1,6 +1,6 @@
 import * as db from './data.js';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
-import { esc, fmtDate, toast } from './util.js';
+import { esc, fmtDate, fmtLong, toast } from './util.js';
 
 const $ = (id) => document.getElementById(id);
 const views = ['loading', 'login', 'denied', 'admin'];
@@ -44,7 +44,7 @@ db.getSession().then(route).catch(() => show('login'));
 document.querySelector('.tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab'); if (!t) return;
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === t));
-  ['members', 'former', 'videos', 'badges'].forEach((n) => ($('tab-' + n).hidden = n !== t.dataset.tab));
+  ['members', 'former', 'videos', 'badges', 'news'].forEach((n) => ($('tab-' + n).hidden = n !== t.dataset.tab));
 });
 
 // ---------- Универсальная форма ----------
@@ -212,6 +212,58 @@ $('videos-body').addEventListener('click', async (e) => {
   }
 });
 
+// ---------- Новости ----------
+const newsFields = [
+  { name: 'title', label: 'Заголовок', required: true },
+  { name: 'body', label: 'Текст', type: 'textarea', rows: 12, required: true, hint: 'Абзацы разделяйте пустой строкой. Можно: **жирный**, [ссылка](https://…), списки со строк «- », подзаголовок «## ». Остальное показывается как обычный текст.' },
+  { name: 'image_url', label: 'Картинка (URL, необязательно)', placeholder: 'https://… или assets/…' },
+  { name: 'source_name', label: 'Название источника', placeholder: 'PUBG: BATTLEGROUNDS' },
+  { name: 'source_url', label: 'Ссылка на источник', type: 'url', placeholder: 'https://…' },
+  { name: 'published_at', label: 'Дата публикации', type: 'date', default: today(), required: true },
+  { name: 'pinned', label: 'Закрепить сверху', type: 'select', options: ['нет', 'да'], default: 'нет' },
+];
+let news = [];
+async function loadNews() { news = await db.getNews(); renderNews(); }
+const moscowDay = (iso) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow' }).format(new Date(iso));
+function renderNews() {
+  const q = $('news-search').value.trim().toLowerCase();
+  const rows = news.filter((n) => !q || n.title.toLowerCase().includes(q));
+  $('news-body').innerHTML = rows.map((n) => `<tr>
+    <td>${esc(fmtLong(n.published_at))}</td><td><b>${esc(n.title)}</b></td>
+    <td class="muted">${n.source_url ? `<a href="${esc(n.source_url)}" target="_blank" rel="noopener">${esc(n.source_name || 'ссылка')} ↗</a>` : '—'}</td>
+    <td>${n.pinned ? '📌' : ''}</td>
+    <td class="actions">
+      <button class="btn btn-ghost btn-sm" data-act="pin" data-id="${n.id}">${n.pinned ? 'Открепить' : 'Закрепить'}</button>
+      <button class="btn btn-olive btn-sm" data-act="edit" data-id="${n.id}">Изменить</button>
+      <button class="btn btn-danger btn-sm" data-act="del" data-id="${n.id}">Удалить</button>
+    </td></tr>`).join('') || '<tr><td colspan="5" class="muted">Новостей пока нет</td></tr>';
+}
+function normNews(d) {
+  const out = { ...d, pinned: d.pinned === 'да' };
+  const day = d.published_at || today();
+  // дату храним с полуднем по Москве, чтобы день не «съезжал» из-за часовых поясов
+  out.published_at = new Date(`${day}T12:00:00+03:00`).toISOString();
+  return out;
+}
+$('news-search').addEventListener('input', renderNews);
+$('add-news').addEventListener('click', async () => {
+  const d = await openForm('Новая новость', newsFields); if (!d) return;
+  await guard(async () => { await db.createNews(normNews(d)); await loadNews(); }, 'Новость добавлена');
+});
+$('news-body').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const n = news.find((x) => x.id == b.dataset.id);
+  if (b.dataset.act === 'pin') {
+    await guard(async () => { await db.updateNews(n.id, { pinned: !n.pinned }); await loadNews(); }, n.pinned ? 'Откреплено' : 'Закреплено');
+  } else if (b.dataset.act === 'edit') {
+    const d = await openForm('Изменить новость', newsFields, { ...n, published_at: moscowDay(n.published_at), pinned: n.pinned ? 'да' : 'нет' }); if (!d) return;
+    await guard(async () => { await db.updateNews(n.id, normNews(d)); await loadNews(); }, 'Сохранено');
+  } else if (b.dataset.act === 'del') {
+    if (!confirm(`Удалить новость «${n.title}»?`)) return;
+    await guard(async () => { await db.deleteNews(n.id); await loadNews(); }, 'Удалено');
+  }
+});
+
 // ---------- Значки ----------
 const badgeFields = [
   { name: 'title', label: 'Название', required: true },
@@ -281,5 +333,5 @@ async function editMemberBadges(m) {
 }
 
 async function loadAll() {
-  await Promise.all([loadBadges(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
+  await Promise.all([loadBadges(), loadNews(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
 }

@@ -1,14 +1,14 @@
-import { getMembers, getVideos } from './data.js';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges } from './data.js';
+import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
-import { esc, fmtDate, fmtMonth, toast, copyText, ROLE_CLASS } from './util.js';
+import { esc, fmtDate, fmtMonth, fmtLong, renderRich, safeUrl, toast, copyText, ROLE_CLASS } from './util.js';
 
 // ---------- Состав ----------
 let members = [];
 let roleFilter = '';
-let expanded = false;
-const previewLimit = () => (window.innerWidth <= 600 ? 6 : 9);
-const listEl = document.getElementById('roster-list');
-const searchEl = document.getElementById('roster-search');
+const listEl = document.getElementById('roster-list') || document.createElement('div');
+const searchEl = document.getElementById('roster-search') || { value: '', addEventListener() {} };
+const teaser = !!listEl.dataset.teaser;
 
 function discordCell(m) {
   const nick = esc(m.discord_nick || '—');
@@ -77,12 +77,8 @@ function renderRoster() {
     (!roleFilter || m.clan_role === roleFilter) &&
     (!q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q))));
   if (!rows.length) { listEl.innerHTML = '<p class="muted">Никого не нашли. Может, он в кустах?</p>'; return; }
-  const filtering = !!(q || roleFilter);
-  const limit = previewLimit();
-  const shown = (filtering || expanded) ? rows : rows.slice(0, limit);
-  const toggle = (!filtering && rows.length > limit)
-    ? `<div class="roster-more"><button class="btn btn-ghost" id="roster-toggle">${expanded ? 'Свернуть' : `Показать всех (${rows.length})`}</button></div>`
-    : '';
+  const shown = teaser ? rows.filter((m) => m.clan_role !== 'боец') : rows;
+  const toggle = '';
   listEl.innerHTML = shown.map((m) => `
     <article class="member ${ROLE_CLASS[m.clan_role] || ''}" data-id="${m.id}">
       <div class="member-top">
@@ -99,19 +95,13 @@ function renderRoster() {
 listEl.addEventListener('click', async (e) => {
   const more = e.target.closest('[data-more]');
   if (more) { openBadges.add(+more.dataset.more); renderRoster(); return; }
-  if (e.target.closest('#roster-toggle')) {
-    expanded = !expanded;
-    renderRoster();
-    if (!expanded) document.getElementById('roster').scrollIntoView({ behavior: 'smooth' });
-    return;
-  }
   const b = e.target.closest('.copy-btn');
   if (!b) return;
   await copyText(b.dataset.copy);
   toast(`Ник «${b.dataset.copy}» скопирован`);
 });
 searchEl.addEventListener('input', renderRoster);
-document.querySelector('.role-filter').addEventListener('click', (e) => {
+document.querySelector('.role-filter')?.addEventListener('click', (e) => {
   const b = e.target.closest('.chip');
   if (!b) return;
   document.querySelectorAll('.role-filter .chip').forEach((c) => c.classList.toggle('active', c === b));
@@ -119,17 +109,20 @@ document.querySelector('.role-filter').addEventListener('click', (e) => {
   renderRoster();
 });
 
-getMembers().then((rows) => {
+const needMembers = ['roster-list', 'hall-list'].some((id) => document.getElementById(id));
+if (needMembers) getMembers().then((rows) => {
   members = rows;
-  document.getElementById('squad-count').textContent = rows.length;
+  const sc = document.getElementById('squad-count'); if (sc) sc.textContent = rows.length;
   renderRoster();
+  renderHall();
 }).catch((err) => {
   console.error(err);
   listEl.innerHTML = '<p class="error-text">Не удалось загрузить состав. Попробуйте обновить страницу.</p>';
+  const h = document.getElementById('hall-list'); if (h) h.innerHTML = '<p class="error-text">Не удалось загрузить данные.</p>';
 });
 
 // ---------- Видео ----------
-const videoEl = document.getElementById('video-list');
+const videoEl = document.getElementById('video-list') || document.createElement('div');
 
 function renderVideos(videos) {
   if (!videos.length) { videoEl.innerHTML = '<p class="muted">Скоро здесь появятся наши лучшие моменты.</p>'; return; }
@@ -173,7 +166,87 @@ videoEl.addEventListener('click', (e) => {
   p.replaceWith(wrap);
 });
 
-getVideos().then(renderVideos).catch((err) => {
+if (document.getElementById('video-list')) getVideos().then((v) => renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v)).catch((err) => {
   console.error(err);
   videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';
 });
+
+// ---------- Новости ----------
+const newsEl = document.getElementById('news-list');
+const detailEl = document.getElementById('news-detail');
+const newsHref = (id) => `news.html?id=${id}`;
+const PLACEHOLDER_IMG = 'assets/hero-bg-1280.webp';
+
+function excerpt(body, n = 170) {
+  const t = String(body || '').replace(/[#*>\[\]]|\(https?:[^)]*\)/g, '').replace(/^\s*[-•]\s+/gm, '').replace(/\s+/g, ' ').trim();
+  return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t;
+}
+function newsCard(n) {
+  const img = safeUrl(n.image_url);
+  return `<a class="news-card ${n.pinned ? 'pinned' : ''}" href="${newsHref(n.id)}">
+    <div class="news-img ${img ? '' : 'ph'}">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span>PUBG</span>'}${n.pinned ? '<span class="pin">📌 Закреплено</span>' : ''}</div>
+    <div class="news-body"><time datetime="${esc(n.published_at)}">${esc(fmtLong(n.published_at))}</time>
+      <h3>${esc(n.title)}</h3><p>${esc(excerpt(n.body))}</p></div></a>`;
+}
+function renderNewsDetail(n) {
+  const img = safeUrl(n.image_url), src = safeUrl(n.source_url);
+  document.title = `${n.title} — Chundriki`;
+  detailEl.innerHTML = `<a class="back-link" href="news.html">← Все новости</a>
+    <time datetime="${esc(n.published_at)}">${esc(fmtLong(n.published_at))}</time>
+    <h2 class="news-title">${esc(n.title)}</h2>
+    ${img ? `<img class="news-hero" src="${esc(img)}" alt="">` : ''}
+    <div class="prose">${renderRich(n.body)}</div>
+    ${src ? `<p class="news-source">Источник: <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">${esc(n.source_name || src)} ↗</a></p>` : ''}`;
+}
+if (newsEl) {
+  const id = new URLSearchParams(location.search).get('id');
+  if (id && detailEl) {
+    newsEl.hidden = true;
+    getNewsItem(id).then((n) => {
+      if (!n) { detailEl.innerHTML = '<a class="back-link" href="news.html">← Все новости</a><p class="muted">Такой новости нет.</p>'; }
+      else renderNewsDetail(n);
+      detailEl.hidden = false;
+      document.querySelector('.page-head')?.setAttribute('hidden', '');
+    }).catch((err) => { console.error(err); detailEl.hidden = false; detailEl.innerHTML = '<p class="error-text">Не удалось загрузить новость.</p>'; });
+  } else {
+    getNews(+newsEl.dataset.limit || undefined).then((rows) => {
+      newsEl.innerHTML = rows.length ? rows.map(newsCard).join('') : '<p class="muted">Новостей пока нет.</p>';
+    }).catch((err) => { console.error(err); newsEl.innerHTML = '<p class="error-text">Не удалось загрузить новости.</p>'; });
+  }
+}
+
+// ---------- Зал славы ----------
+const hallEl = document.getElementById('hall-list');
+let allBadges = null;
+if (hallEl) getBadges().then((b) => { allBadges = b; renderHall(); }).catch((err) => { console.error(err); hallEl.innerHTML = '<p class="error-text">Не удалось загрузить значки.</p>'; });
+function renderHall() {
+  if (!hallEl || !allBadges || !members.length) return;
+  if (!allBadges.length) { hallEl.innerHTML = '<p class="muted">Значков пока нет.</p>'; return; }
+  hallEl.innerHTML = allBadges.map((b) => {
+    const holders = members.flatMap((m) => (m.badges || []).filter((x) => x.id === b.id).map((x) => ({ m, x })))
+      .sort((a, c) => String(a.x.awarded_at || '').localeCompare(String(c.x.awarded_at || '')));
+    const icon = b.icon_url ? `<img src="${esc(b.icon_url)}" alt="" width="72" height="72" loading="lazy">` : `<span class="hall-emoji">${esc(b.emoji || '🏅')}</span>`;
+    return `<article class="hall-card"><div class="hall-icon">${icon}</div><div class="hall-info">
+      <h3>${esc(b.title)}</h3>${b.description ? `<p>${esc(b.description)}</p>` : ''}
+      <ul class="holders">${holders.length ? holders.map(({ m, x }) => `<li><b>${esc(m.game_nick)}</b>${x.awarded_at ? `<span>${esc(fmtMonth(x.awarded_at))}</span>` : ''}${x.note ? `<small>${esc(x.note)}</small>` : ''}</li>`).join('') : '<li class="muted">Пока никто не получил</li>'}</ul>
+    </div></article>`;
+  }).join('');
+}
+
+// ---------- Кнопка Discord (только если задана ссылка-приглашение) ----------
+if (DISCORD_INVITE) {
+  document.querySelectorAll('[data-discord-cta]').forEach((el) => {
+    el.innerHTML = `<a class="btn btn-ghost" href="${esc(DISCORD_INVITE)}" target="_blank" rel="noopener">Зайти в Discord</a>`;
+  });
+}
+
+// ---------- Меню (бургер) ----------
+const burger = document.getElementById('burger');
+const topbar = document.querySelector('.topbar');
+if (burger) {
+  const setMenu = (open) => { topbar.classList.toggle('menu-open', open); burger.setAttribute('aria-expanded', String(open)); };
+  burger.addEventListener('click', () => setMenu(!topbar.classList.contains('menu-open')));
+  document.getElementById('site-nav').addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.topbar')) setMenu(false); });
+}

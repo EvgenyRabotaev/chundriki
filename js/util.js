@@ -23,4 +23,4 @@ export async function copyText(text) {
     document.execCommand('copy'); ta.remove();
   }
 }
-export const ROLE_CLASS = { 'лидер': 'role-leader', 'админ': 'role-admin', 'боец': 'role-soldier' };
+export const ROLE_CLASS = { 'глава': 'role-leader', 'руководитель': 'role-admin', 'боец': 'role-soldier' };

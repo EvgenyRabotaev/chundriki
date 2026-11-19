@@ -7,11 +7,11 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
 
-const MEMBER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, joined_at, real_name';
+const MEMBER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, joined_at, real_name, sort_order';
 const FORMER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, real_name, joined_at, left_at, leave_type, reason';
 const VIDEO_COLS = 'id, title, url, platform, short_desc, long_desc, sort_order, created_at';
 
-const ROLE_ORDER = { 'лидер': 0, 'админ': 1, 'боец': 2 };
+const ROLE_ORDER = { 'глава': 0, 'руководитель': 1, 'боец': 2 };
 
 function unwrap({ data, error }) {
   if (error) throw new Error(error.message || String(error));
@@ -32,8 +32,8 @@ export async function getMembers() {
   const rows = unwrap(await sb.from('members').select(MEMBER_COLS));
   return rows.sort((a, b) =>
     (ROLE_ORDER[a.clan_role] ?? 9) - (ROLE_ORDER[b.clan_role] ?? 9) ||
-    String(a.joined_at || '').localeCompare(String(b.joined_at || '')) ||
-    a.game_nick.localeCompare(b.game_nick));
+    (a.sort_order ?? 100) - (b.sort_order ?? 100) ||
+    a.game_nick.localeCompare(b.game_nick, 'en', { sensitivity: 'base', numeric: true }));
 }
 
 export async function getVideos() {

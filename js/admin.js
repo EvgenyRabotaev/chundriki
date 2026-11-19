@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const views = ['loading', 'login', 'denied', 'admin'];
 function show(v) { views.forEach((x) => ($('view-' + x).hidden = x !== v)); }
 
-const ROLES = ['лидер', 'админ', 'боец'];
+const ROLES = ['глава', 'руководитель', 'боец'];
 const LEAVE_TYPES = ['ушёл сам', 'выгнали'];
 const today = () => new Date().toISOString().slice(0, 10);
 

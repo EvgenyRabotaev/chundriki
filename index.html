@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/hero-bg-1920.webp" media="(min-width: 901px)">
+  <link rel="preload" as="image" href="assets/hero-bg-1280.webp" media="(max-width: 900px)">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -27,55 +29,49 @@
   </header>
 
   <section class="hero" id="top">
-    <div class="sky"></div>
-    <div class="zone" aria-hidden="true"><div class="zone-ring"></div><div class="zone-safe"></div></div>
-
-    <!-- Самолёт с пунктиром траектории -->
-    <div class="flight" aria-hidden="true"><div class="flightpath"></div>
-    <svg class="plane" viewBox="0 0 120 60" aria-hidden="true">
-      <g fill="#c9ccc2">
-        <path d="M8 30 Q8 24 20 24 L92 24 Q112 26 116 30 Q112 34 92 36 L20 36 Q8 36 8 30Z"/>
-        <path d="M50 24 L70 2 L80 2 L68 24Z"/>
-        <path d="M50 36 L70 58 L80 58 L68 36Z"/>
-        <path d="M12 26 L4 12 L12 12 L22 25Z"/>
-      </g>
-      <g fill="#8a8f84"><rect x="62" y="8" width="10" height="5" rx="2"/><rect x="62" y="47" width="10" height="5" rx="2"/></g>
-      <g fill="#3a4b55"><circle cx="96" cy="30" r="2"/><circle cx="88" cy="30" r="2"/><circle cx="80" cy="30" r="2"/></g>
-    </svg></div>
-
-    <!-- Аирдроп -->
-    <div class="drop" aria-hidden="true">
-      <svg viewBox="0 0 120 170">
-        <path d="M6 52 Q60 -14 114 52 Q100 44 87 52 Q74 44 60 52 Q46 44 33 52 Q20 44 6 52Z" fill="#d94040"/>
-        <path d="M33 52 Q46 44 60 52 Q60 10 60 4 Q40 10 33 52Z" fill="#f2f2f2" opacity=".9"/>
-        <path d="M87 52 Q74 44 60 52 Q60 10 60 4 Q80 10 87 52Z" fill="#b23030"/>
-        <g stroke="#ddd" stroke-width="1.2"><line x1="8" y1="52" x2="42" y2="118"/><line x1="33" y1="52" x2="46" y2="118"/><line x1="60" y1="52" x2="60" y2="118"/><line x1="87" y1="52" x2="74" y2="118"/><line x1="112" y1="52" x2="78" y2="118"/></g>
-        <rect x="34" y="116" width="52" height="44" rx="3" fill="#2f5fa8"/>
-        <rect x="34" y="116" width="52" height="8" fill="#d94040"/>
-        <rect x="34" y="150" width="52" height="5" fill="#d94040"/>
-        <path d="M40 128 L80 146 M80 128 L40 146" stroke="#244a85" stroke-width="3"/>
-      </svg>
-      <div class="smoke"></div>
+    <div class="hero-scene" aria-hidden="true">
+      <div class="layer layer-bg" data-speed="0.55" data-mouse="10">
+        <picture>
+          <source media="(max-width: 900px)" srcset="assets/hero-bg-1280.webp">
+          <img class="hero-bg" src="assets/hero-bg-1920.webp" alt="" fetchpriority="high" decoding="async">
+        </picture>
+      </div>
+      <div class="layer layer-fog-back" data-speed="0.4" data-mouse="16"><div class="fog fog-back"></div></div>
+      <canvas class="embers"></canvas>
+      <div class="layer layer-mascot" data-speed="0.22" data-mouse="26">
+        <div class="mascot-wrap">
+          <div class="mascot-shadow"></div>
+          <picture>
+            <source media="(max-width: 760px)" srcset="assets/mascot-sm.webp">
+            <img class="mascot" src="assets/mascot.webp" alt="" decoding="async">
+          </picture>
+          <div class="mascot-grade"></div>
+        </div>
+      </div>
+      <div class="layer layer-fog-front" data-speed="-0.12" data-mouse="40"><div class="fog fog-front"></div><div class="fog fog-front2"></div></div>
+      <div class="hero-shade"></div>
+      <div class="hero-vignette"></div>
+      <div class="hero-grain"></div>
     </div>
 
     <div class="hero-content">
-      <picture>
-        <source srcset="assets/patch.webp" type="image/webp">
-        <img class="patch" src="assets/patch.png" alt="Шеврон клана Chundriki" width="640" height="640">
-      </picture>
+      <div class="hero-badge">
+        <picture>
+          <source srcset="assets/patch.webp" type="image/webp">
+          <img class="patch" src="assets/patch.png" alt="Шеврон клана Chundriki" width="72" height="72">
+        </picture>
+        <span>PUBG: BATTLEGROUNDS<br><b>клан · с 2025</b></span>
+      </div>
       <h1 class="title">CHUNDRIKI</h1>
       <p class="tagline">Пушистые снаружи. Третий шлем внутри.</p>
-      <div class="hud">
-        <span class="hud-item"><b id="alive">100</b> живых</span>
-        <span class="hud-item">Зона: <b id="zone-timer">2:00</b></span>
-        <span class="hud-item"><b id="squad-count">—</b> в клане</span>
-      </div>
       <div class="cta">
         <a class="btn btn-pink" href="#roster">Состав клана</a>
         <a class="btn btn-ghost" href="#videos">Лучшие моменты</a>
       </div>
+      <p class="hero-meta"><b id="squad-count">—</b> бойцов в строю</p>
     </div>
-    <div class="ground"></div>
+    <a class="scroll-cue" href="#history" aria-label="Листать вниз"><span></span></a>
+    <div class="hero-fade" aria-hidden="true"></div>
   </section>
 
   <main>
@@ -124,6 +120,7 @@
   </footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="js/hero.js" defer></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

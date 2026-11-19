@@ -2,21 +2,6 @@ import { getMembers, getVideos } from './data.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, toast, copyText, ROLE_CLASS } from './util.js';
 
-// ---------- HUD в hero ----------
-(function hud() {
-  const alive = document.getElementById('alive');
-  const timer = document.getElementById('zone-timer');
-  let n = 100, t = 120;
-  setInterval(() => {
-    if (n > 1 && Math.random() < 0.45) n -= Math.ceil(Math.random() * 3);
-    if (n < 1) n = 1;
-    t = t <= 0 ? 120 : t - 1;
-    if (n === 1) { alive.textContent = '1'; setTimeout(() => (n = 100), 2500); }
-    alive.textContent = n;
-    timer.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-  }, 1000);
-})();
-
 // ---------- Состав ----------
 let members = [];
 let roleFilter = '';

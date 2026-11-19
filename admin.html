@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админка — Chundriki</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/favicon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><img src="assets/favicon-32.png" alt="" width="28" height="28"> CHUNDRIKI</a>
+    <nav><a href="./">← На сайт</a></nav>
+  </header>
+
+  <div class="admin-wrap">
+    <div id="view-loading"><p class="muted">Проверяем доступ…</p></div>
+
+    <div id="view-login" hidden>
+      <div class="card login-card">
+        <img src="assets/favicon-180.png" alt="">
+        <h2>Вход для админов</h2>
+        <p class="muted">Введите почту — мы пришлём ссылку для входа. Пароль не нужен.</p>
+        <form id="login-form">
+          <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email">
+          <button class="btn btn-pink" type="submit">Прислать ссылку</button>
+        </form>
+        <p id="login-msg" class="muted"></p>
+      </div>
+    </div>
+
+    <div id="view-denied" hidden>
+      <div class="card denied">
+        <h2>Нет доступа</h2>
+        <p class="muted">Вы вошли как <b id="denied-email"></b>, но этот аккаунт не является админом клана.</p>
+        <button class="btn btn-ghost" id="denied-logout">Выйти</button>
+      </div>
+    </div>
+
+    <div id="view-admin" hidden>
+      <div class="admin-head">
+        <h1>Админка</h1>
+        <div><span class="muted" id="admin-email"></span> <button class="btn btn-ghost btn-sm" id="logout">Выйти</button></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="members">Состав</button>
+        <button class="tab" data-tab="former">Ушедшие</button>
+        <button class="tab" data-tab="videos">Видео</button>
+      </div>
+
+      <section id="tab-members">
+        <div class="toolbar">
+          <input type="search" id="members-search" placeholder="Поиск по нику или имени…">
+          <button class="btn btn-pink btn-sm" id="add-member">+ Добавить участника</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Ник в игре</th><th>Discord</th><th>Discord ID</th><th>Роль</th><th>Имя</th><th>В клане с</th><th></th></tr></thead>
+          <tbody id="members-body"></tbody>
+        </table></div>
+      </section>
+
+      <section id="tab-former" hidden>
+        <div class="toolbar">
+          <input type="search" id="former-search" placeholder="Поиск по нику или имени…">
+          <button class="btn btn-ghost btn-sm" id="add-former">+ Добавить запись вручную</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Ник в игре</th><th>Discord</th><th>Роль</th><th>Имя</th><th>Вступил</th><th>Ушёл</th><th>Как</th><th>Причина</th><th></th></tr></thead>
+          <tbody id="former-body"></tbody>
+        </table></div>
+      </section>
+
+      <section id="tab-videos" hidden>
+        <div class="toolbar">
+          <button class="btn btn-pink btn-sm" id="add-video">+ Добавить видео</button>
+          <span class="muted">Вставьте ссылку YouTube, TikTok или VK — площадка определится сама.</span>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Порядок</th><th>Название</th><th>Площадка</th><th>Ссылка</th><th>Кратко</th><th></th></tr></thead>
+          <tbody id="videos-body"></tbody>
+        </table></div>
+      </section>
+    </div>
+  </div>
+
+  <dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

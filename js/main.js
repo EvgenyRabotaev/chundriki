@@ -234,10 +234,10 @@ function renderHall() {
 }
 
 // ---------- Кнопка Discord (только если задана ссылка-приглашение) ----------
-if (DISCORD_INVITE) {
-  document.querySelectorAll('[data-discord-cta]').forEach((el) => {
-    el.innerHTML = `<a class="btn btn-ghost" href="${esc(DISCORD_INVITE)}" target="_blank" rel="noopener">Зайти в Discord</a>`;
-  });
+const joinBtn = document.getElementById('discord-join');
+if (joinBtn) {
+  if (DISCORD_INVITE) { joinBtn.href = DISCORD_INVITE; joinBtn.target = '_blank'; joinBtn.rel = 'noopener'; }
+  else joinBtn.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('discord-note').hidden = false; });
 }
 
 // ---------- Меню (бургер) ----------

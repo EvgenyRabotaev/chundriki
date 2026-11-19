@@ -6,7 +6,7 @@ import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
 BASE = 'https://evgenyrabotaev.github.io/chundriki/'
-V = '12'
+V = '14'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
        ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'
@@ -93,7 +93,7 @@ def ad_full(): return f'''<article class="ad prose">
     <li><b>🎮 Свобода выбора:</b> Мы понимаем, что PUBG это не вся жизнь. Перегорел? Хочешь взять паузу или позвать всех в другую игру? Просто напиши в чат! Семья всегда поддержит твой выбор, и мы с радостью пойдем покорять другие миры вместе.</li>
   </ol>
   <h2 class="ad-final">{AD_FINAL}</h2>
-  <div class="join-cta" data-discord-cta></div>
+  <div class="join-cta join-big"><a class="btn btn-discord" id="discord-join" href="#">Вступить в Discord</a><span class="join-note" id="discord-note" hidden>Ссылка на сервер появится скоро 🐾</span></div>
 </article>'''
 
 def recruit_teaser(): return f'''      <div class="recruit">

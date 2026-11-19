@@ -384,3 +384,17 @@ dialog h3 { margin: 0 0 4px; }
 .news-title::after { display: none !important; }
 .news-detail time { display: block; margin-bottom: 4px; }
 .section .news-title { margin: 6px 0 22px; font-family: var(--font); font-weight: 700; }
+
+/* hero: три кнопки, вступление и объявление */
+.btn-join { background: #5865f2; color: #fff; border-color: #7983f5; }
+.btn-join:hover { background: #6b77ff; }
+.cta { flex-wrap: wrap !important; }
+.ad .ad-title, .ad h3, .ad .ad-final { font-size: 17px !important; font-weight: 700 !important; line-height: 1.6; color: var(--text); margin: 22px 0 10px; }
+.ad .ad-title { margin-top: 0; }
+.ad .ad-final { margin-top: 26px; }
+.ad-list li { line-height: 1.6; }
+#join { scroll-margin-top: 80px; }
+.join-big { margin-top: 18px; flex-direction: column; align-items: flex-start; gap: 8px; }
+.btn-discord { background: #5865f2; color: #fff; font-size: 20px; padding: 16px 34px; border-radius: 10px; }
+.btn-discord:hover { background: #6b77ff; }
+.join-note { color: var(--sand); font-size: 14px; }

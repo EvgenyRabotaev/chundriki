@@ -44,7 +44,7 @@ db.getSession().then(route).catch(() => show('login'));
 document.querySelector('.tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab'); if (!t) return;
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === t));
-  ['members', 'former', 'videos'].forEach((n) => ($('tab-' + n).hidden = n !== t.dataset.tab));
+  ['members', 'former', 'videos', 'badges'].forEach((n) => ($('tab-' + n).hidden = n !== t.dataset.tab));
 });
 
 // ---------- Универсальная форма ----------
@@ -87,7 +87,7 @@ const memberFields = [
   { name: 'joined_at', label: 'Дата вступления', type: 'date', default: today() },
 ];
 let members = [];
-async function loadMembers() { members = await db.getMembers(); renderMembers(); }
+async function loadMembers() { members = await db.getMembers(); renderMembers(); if (typeof renderBadges === 'function') renderBadges(); }
 function renderMembers() {
   const q = $('members-search').value.trim().toLowerCase();
   const rows = members.filter((m) => !q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q)));
@@ -96,6 +96,7 @@ function renderMembers() {
     <td>${esc(m.clan_role)}</td><td>${esc(m.real_name || '—')}</td><td>${fmtDate(m.joined_at)}</td>
     <td class="actions">
       <button class="btn btn-olive btn-sm" data-act="edit" data-id="${m.id}">Изменить</button>
+      <button class="btn btn-ghost btn-sm" data-act="badges" data-id="${m.id}">Значки${m.badges?.length ? ' (' + m.badges.length + ')' : ''}</button>
       <button class="btn btn-ghost btn-sm" data-act="move" data-id="${m.id}">В ушедшие</button>
       <button class="btn btn-danger btn-sm" data-act="del" data-id="${m.id}">Удалить</button>
     </td></tr>`).join('') || '<tr><td colspan="7" class="muted">Пусто</td></tr>';
@@ -111,6 +112,8 @@ $('members-body').addEventListener('click', async (e) => {
   if (b.dataset.act === 'edit') {
     const d = await openForm('Изменить: ' + m.game_nick, memberFields, m); if (!d) return;
     await guard(async () => { await db.updateMember(m.id, d); await loadMembers(); }, 'Сохранено');
+  } else if (b.dataset.act === 'badges') {
+    await editMemberBadges(m);
   } else if (b.dataset.act === 'move') {
     const d = await openForm(`Перенести ${m.game_nick} в ушедшие`, [
       { name: 'leave_type', label: 'Как ушёл', type: 'select', options: LEAVE_TYPES, required: true },
@@ -209,6 +212,74 @@ $('videos-body').addEventListener('click', async (e) => {
   }
 });
 
+// ---------- Значки ----------
+const badgeFields = [
+  { name: 'title', label: 'Название', required: true },
+  { name: 'description', label: 'Описание', type: 'textarea', rows: 2, hint: 'Видно в подсказке при наведении на значок.' },
+  { name: 'emoji', label: 'Эмодзи', hint: 'Используется, если нет картинки.' },
+  { name: 'icon_url', label: 'Картинка (URL или путь)', placeholder: 'assets/badges/crown.webp', hint: 'Квадратная, лучше с прозрачным фоном. Если заполнена, эмодзи не показывается.' },
+];
+let badges = [];
+const badgeThumb = (b) => b.icon_url ? `<img class="badge-thumb" src="${esc(b.icon_url)}" alt="">` : esc(b.emoji || '🏅');
+async function loadBadges() { badges = await db.getBadges(); renderBadges(); }
+function renderBadges() {
+  $('badges-body').innerHTML = badges.map((b) => {
+    const n = members.filter((m) => (m.badges || []).some((x) => x.id === b.id)).length;
+    return `<tr><td>${badgeThumb(b)}</td><td><b>${esc(b.title)}</b></td><td class="muted">${esc(b.description || '—')}</td><td>${n}</td>
+    <td class="actions">
+      <button class="btn btn-olive btn-sm" data-act="edit" data-id="${b.id}">Изменить</button>
+      <button class="btn btn-danger btn-sm" data-act="del" data-id="${b.id}">Удалить</button>
+    </td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="muted">Значков пока нет</td></tr>';
+}
+function normBadge(d) {
+  if (!d.emoji && !d.icon_url) throw new Error('Укажите эмодзи или картинку');
+  return d;
+}
+$('add-badge').addEventListener('click', async () => {
+  const d = await openForm('Новый значок', badgeFields); if (!d) return;
+  await guard(async () => { await db.createBadge(normBadge(d)); await loadBadges(); }, 'Значок создан');
+});
+$('badges-body').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const x = badges.find((y) => y.id == b.dataset.id);
+  if (b.dataset.act === 'edit') {
+    const d = await openForm('Изменить значок', badgeFields, x); if (!d) return;
+    await guard(async () => { await db.updateBadge(x.id, normBadge(d)); await Promise.all([loadBadges(), loadMembers()]); }, 'Сохранено');
+  } else if (b.dataset.act === 'del') {
+    if (!confirm(`Удалить значок «${x.title}»? Он пропадёт у всех, кому выдан.`)) return;
+    await guard(async () => { await db.deleteBadge(x.id); await Promise.all([loadBadges(), loadMembers()]); }, 'Удалено');
+  }
+});
+
+// Выдача и снятие значков у участника: чекбоксы + необязательная заметка
+async function editMemberBadges(m) {
+  if (!badges.length) { toast('Сначала создайте значок на вкладке «Значки»', true); return; }
+  const have = new Map((m.badges || []).map((x) => [x.id, x]));
+  const dlg = $('dlg'), form = $('dlg-form');
+  const res = await new Promise((resolve) => {
+    form.innerHTML = `<h3>Значки: ${esc(m.game_nick)}</h3><div class="check-list">` + badges.map((b) => {
+      const h = have.get(b.id);
+      return `<div class="check-row"><label><input type="checkbox" name="b${b.id}" ${h ? 'checked' : ''}> ${badgeThumb(b)} <span>${esc(b.title)}</span></label>
+        <input type="text" name="n${b.id}" placeholder="Заметка (необязательно)" value="${esc(h?.note || '')}"></div>`;
+    }).join('') + `</div><div class="dialog-actions"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Отмена</button><button type="submit" class="btn btn-pink btn-sm">Сохранить</button></div>`;
+    form.querySelector('[data-cancel]').onclick = () => dlg.close();
+    dlg.onclose = () => resolve(dlg.returnValue === 'ok' ? dlg._data : null);
+    dlg.returnValue = '';
+    form.onsubmit = (ev) => { ev.preventDefault(); dlg._data = Object.fromEntries(new FormData(form).entries()); dlg.close('ok'); };
+    dlg.showModal();
+  });
+  if (!res) return;
+  await guard(async () => {
+    for (const b of badges) {
+      const on = res['b' + b.id] === 'on', h = have.get(b.id), note = (res['n' + b.id] || '').trim();
+      if (on && (!h || (h.note || '') !== note)) await db.awardBadge(m.id, b.id, note, h?.awarded_at || today());
+      else if (!on && h) await db.revokeBadge(m.id, b.id);
+    }
+    await loadMembers();
+  }, 'Значки обновлены');
+}
+
 async function loadAll() {
-  await Promise.all([loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
+  await Promise.all([loadBadges(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
 }

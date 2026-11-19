@@ -24,3 +24,9 @@ export async function copyText(text) {
   }
 }
 export const ROLE_CLASS = { 'глава': 'role-leader', 'руководитель': 'role-admin', 'боец': 'role-soldier' };
+const MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+export function fmtMonth(d) {
+  if (!d) return '';
+  const [y, m] = String(d).slice(0, 10).split('-');
+  return MONTHS[+m - 1] ? `${MONTHS[+m - 1]} ${y}` : '';
+}

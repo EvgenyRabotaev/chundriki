@@ -30,6 +30,17 @@ function clean(obj) {
 // ---------- Публичное чтение ----------
 export async function getMembers() {
   const rows = unwrap(await sb.from('members').select(MEMBER_COLS));
+  // значки: отдельный запрос; если он упал, состав всё равно показываем
+  const byMember = new Map();
+  try {
+    const mb = unwrap(await sb.from('member_badges').select('member_id, awarded_at, note, badges(id, slug, title, description, icon_url, emoji)'));
+    for (const r of mb) {
+      if (!r.badges) continue;
+      if (!byMember.has(r.member_id)) byMember.set(r.member_id, []);
+      byMember.get(r.member_id).push({ ...r.badges, awarded_at: r.awarded_at, note: r.note });
+    }
+  } catch (e) { console.warn('badges:', e.message); }
+  for (const m of rows) m.badges = (byMember.get(m.id) || []).sort((a, b) => String(a.awarded_at || '').localeCompare(String(b.awarded_at || '')) || a.id - b.id);
   return rows.sort((a, b) =>
     (ROLE_ORDER[a.clan_role] ?? 9) - (ROLE_ORDER[b.clan_role] ?? 9) ||
     (a.sort_order ?? 100) - (b.sort_order ?? 100) ||
@@ -82,3 +93,17 @@ export async function deleteFormer(id) { unwrap(await sb.from('former_members').
 export async function createVideo(v) { return unwrap(await sb.from('videos').insert(clean(v)).select(VIDEO_COLS).single()); }
 export async function updateVideo(id, v) { return unwrap(await sb.from('videos').update(clean(v)).eq('id', id).select(VIDEO_COLS).single()); }
 export async function deleteVideo(id) { unwrap(await sb.from('videos').delete().eq('id', id)); }
+
+// ---------- Админка: значки ----------
+const BADGE_COLS = 'id, slug, title, description, icon_url, emoji, created_at';
+export async function getBadges() { return unwrap(await sb.from('badges').select(BADGE_COLS).order('id')); }
+export async function createBadge(b) { return unwrap(await sb.from('badges').insert(clean(b)).select(BADGE_COLS).single()); }
+export async function updateBadge(id, b) { return unwrap(await sb.from('badges').update(clean(b)).eq('id', id).select(BADGE_COLS).single()); }
+export async function deleteBadge(id) { unwrap(await sb.from('badges').delete().eq('id', id)); }
+export async function getMemberBadges() { return unwrap(await sb.from('member_badges').select('member_id, badge_id, awarded_at, note')); }
+export async function awardBadge(memberId, badgeId, note, awardedAt) {
+  unwrap(await sb.from('member_badges').upsert({ member_id: memberId, badge_id: badgeId, note: note?.trim() || null, awarded_at: awardedAt || null }));
+}
+export async function revokeBadge(memberId, badgeId) {
+  unwrap(await sb.from('member_badges').delete().eq('member_id', memberId).eq('badge_id', badgeId));
+}

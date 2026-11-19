@@ -151,6 +151,12 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 clamp(14px, 4vw, 32px); }
 
 .history { display: grid; grid-template-columns: 1.7fr 1fr; gap: 28px; align-items: start; }
 .history-text p { margin: 0 0 14px; font-size: 17px; color: #d7d6cf; }
+.history-text .lead { font-weight: 500; color: var(--text); }
+.history-text h3 { margin: 22px 0 10px; font-size: 20px; color: var(--sand); }
+.story-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.story-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; color: #d7d6cf; line-height: 1.55; }
+.story-list .ico { flex: none; font-size: 20px; line-height: 1.3; }
+.story-list b { color: var(--text); }
 .placeholder-note { font-size: 14px !important; color: var(--muted) !important; border-left: 3px solid var(--olive); padding-left: 10px; }
 .facts { list-style: none; margin: 0; padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   background-image: repeating-linear-gradient(45deg, transparent 0 12px, rgba(107,122,58,.06) 12px 24px); }

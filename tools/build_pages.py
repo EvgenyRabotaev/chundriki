@@ -114,7 +114,7 @@ preload = '''  <link rel="preload" as="image" href="assets/hero-bg-3840.webp" me
 idx = hero + '''
   <main>
 ''' + pv('// сводки', 'Новости', 'news.html', '      <div id="news-list" class="news-grid" data-limit="3"><p class="muted">Загружаем новости…</p></div>', 'news') \
-  + pv('// сквад', 'Состав', 'roster.html', '''      <p class="roster-count muted">В клане сейчас: <b id="squad-count">…</b></p>
+  + pv('// сквад', 'Состав', 'roster.html', '''      <p class="roster-count muted">В клане сейчас: <b class="squad-count">…</b></p>
       <div id="roster-list" class="roster" data-teaser="1" data-limit="9"><p class="muted">Загружаем состав…</p></div>
       <div class="roster-more"><a class="btn btn-ghost" href="roster.html">Смотреть весь состав</a></div>''', 'roster', 'Весь состав →') \
   + pv('// килкам', 'Лучшие моменты', 'moments.html', '      <div id="video-list" class="videos" data-limit="3"><p class="muted">Загружаем видео…</p></div>', 'videos') \
@@ -141,7 +141,7 @@ page('roster.html', 'Состав клана — Chundriki', 'Полный со�
           <button class="chip" data-role="боец">Бойцы</button>
         </div>
       </div>
-      <p class="roster-count muted">Всего в клане: <b id="squad-count">…</b></p>
+      <p class="roster-count muted">Всего в клане: <b class="squad-count">…</b></p>
       <div id="roster-list" class="roster"><p class="muted">Загружаем состав…</p></div>
     </section>
   </main>''', 'roster.html')

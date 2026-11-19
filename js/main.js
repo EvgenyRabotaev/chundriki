@@ -112,7 +112,7 @@ document.querySelector('.role-filter')?.addEventListener('click', (e) => {
 const needMembers = ['roster-list', 'hall-list'].some((id) => document.getElementById(id));
 if (needMembers) getMembers().then((rows) => {
   members = rows;
-  const sc = document.getElementById('squad-count'); if (sc) sc.textContent = rows.length;
+  document.querySelectorAll('.squad-count').forEach((el) => { el.textContent = rows.length; });
   renderRoster();
   renderHall();
 }).catch((err) => {

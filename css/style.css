@@ -406,3 +406,7 @@ dialog h3 { margin: 0 0 4px; }
 .btn-khaki { background: rgba(107,122,58,.85); color: #f1eedf; border-color: #8a9b4e; }
 .btn-khaki:hover { background: #7d8e44; }
 .hero .btn-khaki { box-shadow: 0 10px 30px -10px rgba(138,155,78,.6); backdrop-filter: blur(6px); }
+
+.news-fig { margin: 18px 0; }
+.news-fig img { width: 100%; height: auto; display: block; border-radius: var(--radius); border: 1px solid var(--line); }
+.news-fig figcaption { margin-top: 6px; font-size: 12px; color: var(--muted); }

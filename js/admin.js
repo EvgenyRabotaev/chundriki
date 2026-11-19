@@ -215,7 +215,7 @@ $('videos-body').addEventListener('click', async (e) => {
 // ---------- Новости ----------
 const newsFields = [
   { name: 'title', label: 'Заголовок', required: true },
-  { name: 'body', label: 'Текст', type: 'textarea', rows: 12, required: true, hint: 'Абзацы разделяйте пустой строкой. Можно: **жирный**, [ссылка](https://…), списки со строк «- », подзаголовок «## ». Остальное показывается как обычный текст.' },
+  { name: 'body', label: 'Текст', type: 'textarea', rows: 12, required: true, hint: 'Абзацы разделяйте пустой строкой. Можно: **жирный**, [ссылка](https://…), списки со строк «- », подзаголовок «## ». Картинка в тексте: отдельной строкой ![описание](assets/news/… или https://…). Остальное показывается как обычный текст.' },
   { name: 'image_url', label: 'Картинка (URL, необязательно)', placeholder: 'https://… или assets/…' },
   { name: 'source_name', label: 'Название источника', placeholder: 'PUBG: BATTLEGROUNDS' },
   { name: 'source_url', label: 'Ссылка на источник', type: 'url', placeholder: 'https://…' },

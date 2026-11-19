@@ -194,7 +194,7 @@ function renderNewsDetail(n) {
   detailEl.innerHTML = `<a class="back-link" href="news.html">← Все новости</a>
     <time datetime="${esc(n.published_at)}">${esc(fmtLong(n.published_at))}</time>
     <h2 class="news-title">${esc(n.title)}</h2>
-    ${img ? `<img class="news-hero" src="${esc(img)}" alt="">` : ''}
+    ${img ? `<figure class="news-fig news-cover"><img src="${esc(img)}" alt="${esc(n.title)}">${img.startsWith('assets/news/') ? '<figcaption>Изображения: © KRAFTON / PUBG</figcaption>' : ''}</figure>` : ''}
     <div class="prose">${renderRich(n.body)}</div>
     ${src ? `<p class="news-source">Источник: <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">${esc(n.source_name || src)} ↗</a></p>` : ''}`;
 }

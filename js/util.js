@@ -46,6 +46,12 @@ export function renderRich(text) {
   return String(text ?? '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map((blk) => {
     const lines = blk.split('\n').filter((l) => l.trim());
     if (!lines.length) return '';
+    const im = lines.length === 1 && lines[0].trim().match(/^!\[([^\]]*)\]\(([^\s)]+)\)$/);
+    if (im) {
+      const src = im[2];
+      if (!(/^https:\/\//i.test(src) || /^assets\/news\/[\w@./-]+$/.test(src)) || src.includes('..')) return '';
+      return `<figure class="news-fig"><img src="${esc(src)}" alt="${esc(im[1])}" loading="lazy"></figure>`;
+    }
     if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) return '<ul>' + lines.map((l) => `<li>${inline(l.replace(/^\s*[-•*]\s+/, ''))}</li>`).join('') + '</ul>';
     if (/^#{1,3}\s+/.test(lines[0])) {
       const rest = lines.slice(1).join('\n');

@@ -11,7 +11,8 @@ const params = new URLSearchParams(location.search);
 const FAST = params.has('mascot'); // ?mascot=1 — для отладки: пузырёк через 1.5 с
 const MOBILE = matchMedia('(max-width: 560px)').matches;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FIRST_MS = FAST ? 1200 : 17000, GAP_MS = FAST ? 6000 : 60000, MAX_LINES = MOBILE ? 3 : 6;
+const FIRST_MS = FAST ? 1200 : 12000, GAP_MS = FAST ? 6000 : 60000, MAX_LINES = MOBILE ? 5 : 10;
+const IMG = '<img src="assets/mascot-sit.webp?v=3" srcset="assets/mascot-sit-sm.webp?v=3 210w, assets/mascot-sit.webp?v=3 420w" sizes="(max-width: 560px) 90px, 140px" alt="" width="420" height="601">';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 && m < 15) ? c : k === 1 ? a : (k > 1 && k < 5) ? b : c; };
@@ -61,14 +62,16 @@ function build() {
   const root = document.createElement('div');
   root.className = 'mchat';
   root.innerHTML = `<div class="mchat-bubble" role="status" aria-live="polite"><span class="ghost"></span><span class="typed"></span></div>
-    <button class="mchat-fig" type="button" aria-label="Чундрик: послушать прикол"><img src="assets/mascot-sm.webp" alt="" width="527" height="620"></button>
+    <button class="mchat-fig" type="button" aria-label="Чундрик: послушать прикол">${IMG}</button>
     <button class="mchat-x" type="button" aria-label="Спрятать Чундрика" title="Спрятать">×</button>`;
   const peek = document.createElement('button');
   peek.className = 'mchat-peek'; peek.type = 'button'; peek.setAttribute('aria-label', 'Вернуть Чундрика'); peek.title = 'Вернуть Чундрика';
-  peek.innerHTML = '<img src="assets/mascot-sm.webp" alt="" width="527" height="620">';
+  peek.innerHTML = IMG;
   document.body.append(root, peek);
   const bubble = root.querySelector('.mchat-bubble'), ghost = bubble.querySelector('.ghost'), typed = bubble.querySelector('.typed');
-  let timer = null, run = 0, count = 0, greeted = false;
+  let timer = null, run = 0, count = 0, greeted = false, hovered = false;
+  root.addEventListener('mouseenter', () => { hovered = true; }); root.addEventListener('mouseleave', () => { hovered = false; });
+  bubble.addEventListener('click', () => { run++; bubble.classList.remove('on'); });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   function applyHidden() { root.hidden = !!st.hidden; peek.hidden = !st.hidden; }
   async function speak(text) {
@@ -77,14 +80,15 @@ function build() {
     ghost.textContent = text; typed.textContent = ''; bubble.classList.add('on');
     if (REDUCED) typed.textContent = text;
     else for (let i = 1; i <= text.length; i++) { if (my !== run) return; typed.textContent = text.slice(0, i); await wait(28 + Math.random() * 22); }
-    await wait(Math.min(9000, 3000 + text.length * 65));
+    let left = Math.min(25000, 12000 + text.length * 70);
+    while (left > 0 && my === run) { await wait(200); if (!hovered) left -= 200; }
     if (my === run) bubble.classList.remove('on');
   }
   function schedule(ms) { clearTimeout(timer); if (!st.hidden) timer = setTimeout(auto, ms); }
   async function auto() {
     if (st.hidden || document.hidden || count >= MAX_LINES) return count >= MAX_LINES ? undefined : schedule(GAP_MS);
     count++; const t = greeted ? nextLine() : (greeted = true, greet());
-    await speak(t); schedule(GAP_MS);
+    schedule(GAP_MS); await speak(t); // отсчёт 60 с — от начала реплики
   }
   root.querySelector('.mchat-fig').addEventListener('click', async () => { clearTimeout(timer); count++; greeted = true; await speak(nextLine()); schedule(GAP_MS); });
   root.querySelector('.mchat-x').addEventListener('click', () => { st.hidden = true; save(); run++; bubble.classList.remove('on'); clearTimeout(timer); applyHidden(); });

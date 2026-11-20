@@ -16,6 +16,27 @@ const IMG = '<img src="assets/mascot-sit3.webp?v=5" srcset="assets/mascot-sit3-s
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 && m < 15) ? c : k === 1 ? a : (k > 1 && k < 5) ? b : c; };
+// Разметка в репликах: [текст](ссылка). Только ссылки на страницы сайта (name.html) или http(s); остальное — обычный текст, HTML не исполняется.
+const SAFE_HREF = /^(?:[\w-]+\.html(?:#[\w-]*)?|https?:\/\/[^\s"'<>]+)$/;
+function parseMarkup(text) {
+  const parts = []; const re = /\[([^\]]+)\]\(([^)\s]+)\)/g; let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push({ t: text.slice(last, m.index) });
+    parts.push(SAFE_HREF.test(m[2]) ? { t: m[1], href: m[2] } : { t: m[1] });
+    last = re.lastIndex;
+  }
+  if (last < text.length) parts.push({ t: text.slice(last) });
+  return parts;
+}
+const plainText = (text) => parseMarkup(text).map((p) => p.t).join('');
+function renderTyped(el, parts, n) { // показать первые n символов, ссылки остаются ссылками
+  el.textContent = '';
+  for (const p of parts) {
+    if (n <= 0) break; const chunk = p.t.slice(0, n); n -= chunk.length;
+    if (p.href) { const a = document.createElement('a'); a.href = p.href; a.textContent = chunk; if (/^https?:/.test(p.href)) { a.target = '_blank'; a.rel = 'noopener'; } el.appendChild(a); }
+    else el.appendChild(document.createTextNode(chunk));
+  }
+}
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 let pool = { general: [], badge: {}, member: [], page: {} }, profile = null;
@@ -34,7 +55,10 @@ async function load() {
     const rows = await getMascotLines();
     if (!rows.length) throw new Error('empty');
     pool = { general: [], badge: {}, member: [], page: {} };
-    for (const r of rows) addLine(r.kind, r.text, r.kind === 'badge' ? r.badges?.slug : r.page);
+    for (const r of rows) {
+      if (r.kind === 'badge' && !r.badges?.slug) continue; // шутка про медальку без медальки — не показываем никому
+      addLine(r.kind, r.text, r.kind === 'badge' ? r.badges.slug : r.page);
+    }
   } catch { useFallback(); }
   try { if ((await getSession())) profile = await getMascotProfile(); } catch {}
 }
@@ -46,7 +70,7 @@ const fill = (t) => {
 const used = new Set();
 function nextLine() {
   const cand = [];
-  if (profile) {
+  if (profile) { // шутки по медалькам — ТОЛЬКО вошедшему участнику, у которого есть эта медалька
     for (const s of profile.badges || []) for (const t of pool.badge[s] || []) cand.push(t, t);
     for (const t of pool.member) cand.push(t);
   }
@@ -71,16 +95,17 @@ function build() {
   const bubble = root.querySelector('.mchat-bubble'), ghost = bubble.querySelector('.ghost'), typed = bubble.querySelector('.typed');
   let timer = null, run = 0, count = 0, greeted = false, hovered = false;
   root.addEventListener('mouseenter', () => { hovered = true; }); root.addEventListener('mouseleave', () => { hovered = false; });
-  bubble.addEventListener('click', () => { run++; bubble.classList.remove('on'); });
+  bubble.addEventListener('click', (e) => { if (e.target.closest('a')) return; run++; bubble.classList.remove('on'); });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   function applyHidden() { root.hidden = !!st.hidden; peek.hidden = !st.hidden; }
   async function speak(text) {
     const my = ++run;
     bubble.classList.remove('on'); await wait(bubble.classList.contains('on') ? 0 : 50);
-    ghost.textContent = text; typed.textContent = ''; bubble.classList.add('on');
-    if (REDUCED) typed.textContent = text;
-    else for (let i = 1; i <= text.length; i++) { if (my !== run) return; typed.textContent = text.slice(0, i); await wait(28 + Math.random() * 22); }
-    let left = Math.min(25000, 12000 + text.length * 70);
+    const parts = parseMarkup(text), plain = plainText(text);
+    ghost.textContent = plain; typed.textContent = ''; bubble.classList.add('on');
+    if (REDUCED) renderTyped(typed, parts, plain.length);
+    else for (let i = 1; i <= plain.length; i++) { if (my !== run) return; renderTyped(typed, parts, i); await wait(28 + Math.random() * 22); }
+    let left = Math.min(25000, 12000 + plain.length * 70);
     while (left > 0 && my === run) { await wait(200); if (!hovered) left -= 200; }
     if (my === run) bubble.classList.remove('on');
   }

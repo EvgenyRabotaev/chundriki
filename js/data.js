@@ -148,6 +148,15 @@ export async function uploadNewsImage(blob, ext = 'webp') {
   unwrap(await sb.storage.from('news').upload(path, blob, { contentType: blob.type || 'image/webp', cacheControl: '31536000', upsert: false }));
   return sb.storage.from('news').getPublicUrl(path).data.publicUrl;
 }
+
+// ---------- Маскот ----------
+export async function getMascotLines() {
+  return unwrap(await sb.from('mascot_lines').select('text, kind, badge_id, member_id, page, badges(slug)').eq('active', true));
+}
+export async function getMascotProfile() {
+  return unwrap(await sb.rpc('mascot_profile'));
+}
+
 // ---------- Календарь ----------
 export async function getTodayEvents() { return unwrap(await sb.rpc('clan_events_on')); }
 const EVENT_COLS = 'id, title, description, event_date, recurring_yearly, emoji';

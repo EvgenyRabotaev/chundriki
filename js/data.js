@@ -108,8 +108,8 @@ export async function updateVideo(id, v) { return unwrap(await sb.from('videos')
 export async function deleteVideo(id) { unwrap(await sb.from('videos').delete().eq('id', id)); }
 
 // ---------- Админка: значки ----------
-const BADGE_COLS = 'id, slug, title, description, icon_url, emoji, created_at';
-export async function getBadges() { return unwrap(await sb.from('badges').select(BADGE_COLS).order('id')); }
+const BADGE_COLS = 'id, slug, title, description, icon_url, emoji, created_at, sort_order';
+export async function getBadges() { return unwrap(await sb.from('badges').select(BADGE_COLS).order('sort_order').order('id')); }
 export async function createBadge(b) { return unwrap(await sb.from('badges').insert(clean(b)).select(BADGE_COLS).single()); }
 export async function updateBadge(id, b) { return unwrap(await sb.from('badges').update(clean(b)).eq('id', id).select(BADGE_COLS).single()); }
 export async function deleteBadge(id) { unwrap(await sb.from('badges').delete().eq('id', id)); }

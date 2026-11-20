@@ -68,7 +68,7 @@ img { max-width: 100%; }
   filter: brightness(.7) contrast(1.1) saturate(.72)
           drop-shadow(-2px -1px 1px rgba(255,150,70,.55)) drop-shadow(-10px 0 22px rgba(255,110,40,.22)); }
 .mascot-grade { position: absolute; inset: 0;
-  -webkit-mask: url(../assets/mascot.webp) bottom / contain no-repeat; mask: url(../assets/mascot.webp) bottom / contain no-repeat;
+  -webkit-mask: url(../assets/mascot.webp?v=2) bottom / contain no-repeat; mask: url(../assets/mascot.webp?v=2) bottom / contain no-repeat;
   background:
     radial-gradient(ellipse 80% 50% at 15% 85%, rgba(255,120,40,.55), transparent 60%),
     linear-gradient(200deg, rgba(20,34,48,.55) 0%, rgba(20,30,40,.1) 45%, rgba(255,110,40,.25) 100%);

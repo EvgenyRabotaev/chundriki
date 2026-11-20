@@ -583,3 +583,15 @@ dialog.dlg-wide[open] { display: flex; }
 .prose ul, .prose ol, .prose blockquote { overflow: hidden; } /* не залезать под картинку с обтеканием */
 .section .prose h2, .prose h2 { font-family: var(--font); font-weight: 700; font-size: 24px; letter-spacing: 0; margin: 26px 0 12px; }
 .section .prose h2::after { display: none; }
+
+/* moments: wide collage backdrop behind the page header */
+body[data-page="moments"] { position: relative; }
+body[data-page="moments"]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 620px; z-index: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(18,20,22,.35) 0%, rgba(18,20,22,.55) 55%, var(--bg) 100%), url(../assets/moments-bg-1920.webp) 50% 20% / cover no-repeat; }
+body[data-page="moments"] > main, body[data-page="moments"] > .footer { position: relative; z-index: 1; }
+@media (min-width: 1921px), (min-width: 901px) and (min-resolution: 1.5dppx) {
+  body[data-page="moments"]::before { background-image: linear-gradient(to bottom, rgba(18,20,22,.35) 0%, rgba(18,20,22,.55) 55%, var(--bg) 100%), url(../assets/moments-bg-3840.webp); } }
+@media (max-width: 900px) {
+  body[data-page="moments"]::before { height: 460px; background-image: linear-gradient(to bottom, rgba(18,20,22,.4) 0%, rgba(18,20,22,.6) 55%, var(--bg) 100%), url(../assets/moments-bg-1280.webp); background-position: 50% 0, 70% 0; } }
+body[data-page="moments"] .page-head h1, body[data-page="moments"] .page-lead { text-shadow: 0 2px 14px rgba(0,0,0,.8); }
+body[data-page="moments"] .page-lead { color: #c9ced1; }

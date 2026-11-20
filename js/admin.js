@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const views = ['loading', 'login', 'denied', 'admin'];
 function show(v) { views.forEach((x) => ($('view-' + x).hidden = x !== v)); }
 
-const ROLES = ['глава', 'руководитель', 'боец'];
+const ROLES = ['глава', 'руководитель', 'чундрик'];
 const LEAVE_TYPES = ['ушёл сам', 'выгнали'];
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -88,7 +88,7 @@ const memberFields = [
   { name: 'game_nick', label: 'Ник в игре', required: true },
   { name: 'discord_nick', label: 'Ник в Discord' },
   { name: 'discord_id', label: 'Discord ID', pattern: '\\d{15,20}', placeholder: '123456789012345678', hint: 'Необязательно. Discord → Настройки → Расширенные → Режим разработчика, затем ПКМ по человеку → «Копировать ID». На сайте ID не показывается, по нему ник становится ссылкой.' },
-  { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'боец', required: true },
+  { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'чундрик', required: true },
   { name: 'real_name', label: 'Реальное имя' },
   { name: 'joined_at', label: 'Дата вступления', type: 'date', default: today() },
 ];
@@ -138,7 +138,7 @@ const formerFields = [
   { name: 'game_nick', label: 'Ник в игре', required: true },
   { name: 'discord_nick', label: 'Ник в Discord' },
   { name: 'discord_id', label: 'Discord ID', pattern: '\\d{15,20}' },
-  { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'боец' },
+  { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'чундрик' },
   { name: 'real_name', label: 'Реальное имя' },
   { name: 'joined_at', label: 'Дата вступления', type: 'date' },
   { name: 'left_at', label: 'Дата ухода', type: 'date', default: today() },

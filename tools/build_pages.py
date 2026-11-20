@@ -6,7 +6,7 @@ import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
 BASE = 'https://chundriki.top/'
-V = '24'
+V = '25'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
        ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'
@@ -137,7 +137,7 @@ page('roster.html', 'Состав клана — Chundriki', 'Полный со�
           <button class="chip active" data-role="">Все</button>
           <button class="chip" data-role="глава">Глава</button>
           <button class="chip" data-role="руководитель">Руководители</button>
-          <button class="chip" data-role="боец">Бойцы</button>
+          <button class="chip" data-role="чундрик">Чундрики</button>
         </div>
       </div>
       <p class="roster-count muted">Всего в клане: <b class="squad-count">…</b></p>

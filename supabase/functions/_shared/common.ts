@@ -72,7 +72,7 @@ export async function linkOrCreate(
   if (!reg) return 'none';
   const { data, error } = await sb.from('members').insert({
     game_nick: reg.game_nick, real_name: reg.real_name || null, discord_id: user.id, discord_nick: display,
-    clan_role: 'боец', joined_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' }), // дата по Москве
+    clan_role: 'чундрик', joined_at: new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Moscow' }), // дата по Москве
   }).select('id, game_nick, discord_nick, discord_id').single();
   if (error) throw new Error('insert member: ' + error.message);
   site.push(data);

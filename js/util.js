@@ -23,7 +23,7 @@ export async function copyText(text) {
     document.execCommand('copy'); ta.remove();
   }
 }
-export const ROLE_CLASS = { 'глава': 'role-leader', 'руководитель': 'role-admin', 'боец': 'role-soldier' };
+export const ROLE_CLASS = { 'глава': 'role-leader', 'руководитель': 'role-admin', 'чундрик': 'role-soldier' };
 const MONTHS = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
 export function fmtMonth(d) {
   if (!d) return '';

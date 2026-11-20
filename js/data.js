@@ -11,7 +11,7 @@ const MEMBER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, joined_
 const FORMER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, real_name, joined_at, left_at, leave_type, reason';
 const VIDEO_COLS = 'id, title, url, platform, short_desc, long_desc, sort_order, created_at';
 
-const ROLE_ORDER = { 'глава': 0, 'руководитель': 1, 'боец': 2 };
+const ROLE_ORDER = { 'глава': 0, 'руководитель': 1, 'чундрик': 2 };
 
 function unwrap({ data, error }) {
   if (error) throw new Error(error.message || String(error));

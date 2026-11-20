@@ -1,6 +1,6 @@
 // Точка приёма Discord Interactions: кнопка «Указать ник» и форма «Анкета Чундрика».
 import nacl from 'npm:tweetnacl@1';
-import { sb, getConfig, linkOrCreate, type SiteMember } from '../_shared/common.ts';
+import { sb, discord, getConfig, linkOrCreate, type SiteMember } from '../_shared/common.ts';
 
 const PUBLIC_KEY = Deno.env.get('DISCORD_PUBLIC_KEY')!;
 const hex = (s: string) => Uint8Array.from(s.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
@@ -46,6 +46,14 @@ export async function handle(i: any) {
       await linkOrCreate(user, i.member?.nick, { game_nick, real_name }, (site ?? []) as SiteMember[]);
       onSite = true;
     }
+    // уведомление в канал регистрации: кто и какой ник указал (чтобы добавить в игре)
+    try {
+      const ch = await getConfig('channel_id');
+      if (ch) await discord(`/channels/${ch}/messages`, 'POST', {
+        content: `📝 <@${user.id}> заполнил анкету.\nИгровой ник: **${game_nick}**${real_name ? `\nИмя: ${real_name}` : ''}${onSite ? '\nУже есть роль, запись на сайте обновлена.' : '\nРоли «Чундрики» пока нет.'}`,
+        allowed_mentions: { parse: [] },
+      });
+    } catch (e) { console.error('notify', (e as Error).message); }
     return say(onSite
       ? `🐾 Готово, **${game_nick}**! Твоя запись на сайте обновлена. Добро пожаловать в семью!`
       : `🐾 Записали, **${game_nick}**! Как только тебе выдадут роль «Чундрики», ты сам появишься на сайте. Ничего вводить повторно не нужно. А пока береги бинты и не стой в синей зоне.`);

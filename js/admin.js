@@ -1,4 +1,4 @@
-import * as db from './data.js';
+import * as db from './data.js?v=26';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtLong, toast } from './util.js';
 
@@ -229,16 +229,17 @@ const newsFields = [
   { name: 'pinned', label: 'Закрепить сверху', type: 'select', options: ['нет', 'да'], default: 'нет' },
 ];
 let news = [];
-async function loadNews() { news = await db.getNews(); renderNews(); }
+async function loadNews() { news = await db.getNews(undefined, true); renderNews(); }
 const moscowDay = (iso) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow' }).format(new Date(iso));
 function renderNews() {
   const q = $('news-search').value.trim().toLowerCase();
   const rows = news.filter((n) => !q || n.title.toLowerCase().includes(q));
   $('news-body').innerHTML = rows.map((n) => `<tr>
-    <td>${esc(fmtLong(n.published_at))}</td><td><b>${esc(n.title)}</b></td>
+    <td>${esc(fmtLong(n.published_at))}</td><td>${n.status === 'draft' ? '<span class="badge-draft">черновик</span> ' : ''}<b>${esc(n.title)}</b></td>
     <td class="muted">${n.source_url ? `<a href="${esc(n.source_url)}" target="_blank" rel="noopener">${esc(n.source_name || 'ссылка')} ↗</a>` : '—'}</td>
     <td>${n.pinned ? '📌' : ''}</td>
     <td class="actions">
+      ${n.status === 'draft' ? `<button class="btn btn-olive btn-sm" data-act="publish" data-id="${n.id}">Опубликовать</button>` : ''}
       <button class="btn btn-ghost btn-sm" data-act="pin" data-id="${n.id}">${n.pinned ? 'Открепить' : 'Закрепить'}</button>
       <button class="btn btn-olive btn-sm" data-act="edit" data-id="${n.id}">Изменить</button>
       <button class="btn btn-danger btn-sm" data-act="del" data-id="${n.id}">Удалить</button>
@@ -259,7 +260,10 @@ $('add-news').addEventListener('click', async () => {
 $('news-body').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
   const n = news.find((x) => x.id == b.dataset.id);
-  if (b.dataset.act === 'pin') {
+  if (b.dataset.act === 'publish') {
+    if (!confirm(`Опубликовать «${n.title}»? Она появится на сайте и уйдёт в Telegram.`)) return;
+    await guard(async () => { await db.updateNews(n.id, { status: 'published' }); await loadNews(); }, 'Опубликовано');
+  } else if (b.dataset.act === 'pin') {
     await guard(async () => { await db.updateNews(n.id, { pinned: !n.pinned }); await loadNews(); }, n.pinned ? 'Откреплено' : 'Закреплено');
   } else if (b.dataset.act === 'edit') {
     const d = await openForm('Изменить новость', newsFields, { ...n, published_at: moscowDay(n.published_at), pinned: n.pinned ? 'да' : 'нет' }); if (!d) return;

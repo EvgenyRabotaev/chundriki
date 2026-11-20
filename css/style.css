@@ -466,3 +466,5 @@ dialog h3 { margin: 0 0 4px; }
 .auth-logout::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #1b1e21; color: var(--text); border: 1px solid var(--line, rgba(255,255,255,.12)); font-size: 12px; padding: 3px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; }
 .auth-logout:hover::after, .auth-logout:focus-visible::after { opacity: 1; }
 @media (max-width: 900px) { .topbar .auth-user { font-size: 17px; } .auth-logout::after { left: auto; right: auto; transform: none; top: 50%; margin-left: 34px; translate: 0 -50%; } }
+.draft-banner{background:#5a4a12;border:1px solid #c9a227;color:#ffe08a;padding:.6rem .9rem;border-radius:6px;margin:.6rem 0;font-weight:600}
+.badge-draft{display:inline-block;background:#5a4a12;color:#ffe08a;border-radius:4px;padding:0 .4rem;font-size:.8em}

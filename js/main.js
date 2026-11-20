@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js?v=26';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtMonth, fmtLong, renderRich, safeUrl, toast, copyText, ROLE_CLASS } from './util.js';
@@ -191,7 +191,7 @@ function newsCard(n) {
 function renderNewsDetail(n) {
   const img = safeUrl(n.image_url), src = safeUrl(n.source_url);
   document.title = `${n.title} — Chundriki`;
-  detailEl.innerHTML = `<a class="back-link" href="news.html">← Все новости</a>
+  detailEl.innerHTML = `<a class="back-link" href="news.html">← Все новости</a>${n.status === 'draft' ? '<p class="draft-banner">📝 Черновик — ещё не опубликован, на сайте и в Telegram его не видно</p>' : ''}
     <time datetime="${esc(n.published_at)}">${esc(fmtLong(n.published_at))}</time>
     <h2 class="news-title">${esc(n.title)}</h2>
     ${img ? `<figure class="news-fig news-cover"><img src="${esc(img)}" alt="${esc(n.title)}">${img.startsWith('assets/news/') ? '<figcaption>Изображения: © KRAFTON / PUBG</figcaption>' : ''}</figure>` : ''}
@@ -259,10 +259,11 @@ function initComments(newsId) {
   onAuthChange((s) => { if ((s?.user?.id) !== (session?.user?.id)) setTimeout(() => loadUser(s), 0); });
 }
 if (newsEl) {
-  const id = new URLSearchParams(location.search).get('id');
+  const qs = new URLSearchParams(location.search);
+  const id = qs.get('id');
   if (id && detailEl) {
     newsEl.hidden = true;
-    getNewsItem(id).then((n) => {
+    getNewsItem(id, qs.get('preview')).then((n) => {
       if (!n) { detailEl.innerHTML = '<a class="back-link" href="news.html">← Все новости</a><p class="muted">Такой новости нет.</p>'; }
       else renderNewsDetail(n);
       detailEl.hidden = false;

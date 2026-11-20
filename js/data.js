@@ -122,13 +122,19 @@ export async function revokeBadge(memberId, badgeId) {
 }
 
 // ---------- Новости ----------
-const NEWS_COLS = 'id, title, body, image_url, source_url, source_name, published_at, pinned';
-export async function getNews(limit) {
-  let q = sb.from('news').select(NEWS_COLS).order('pinned', { ascending: false }).order('published_at', { ascending: false });
+const NEWS_COLS = 'id, title, body, image_url, source_url, source_name, published_at, pinned, status';
+export async function getNews(limit, withDrafts = false) {
+  let q = sb.from('news').select(NEWS_COLS);
+  if (!withDrafts) q = q.eq('status', 'published');
+  q = q.order('pinned', { ascending: false }).order('published_at', { ascending: false });
   if (limit) q = q.limit(limit);
   return unwrap(await q);
 }
-export async function getNewsItem(id) {
+export async function getNewsItem(id, previewToken) {
+  if (previewToken) {
+    const rows = unwrap(await sb.rpc('news_preview', { p_id: +id, p_token: previewToken }));
+    return rows?.[0] || null;
+  }
   return unwrap(await sb.from('news').select(NEWS_COLS).eq('id', id).maybeSingle());
 }
 export async function createNews(n) { return unwrap(await sb.from('news').insert(clean(n)).select(NEWS_COLS).single()); }

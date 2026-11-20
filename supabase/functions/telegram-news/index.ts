@@ -38,8 +38,9 @@ Deno.serve(async (req) => {
     const { id } = await req.json();
     const chat = await chatId();
     if (!chat) return Response.json({ status: 'no chat' });
-    const { data: n } = await sb.from('news').select('id, title, body, image_url').eq('id', id).single();
+    const { data: n } = await sb.from('news').select('id, title, body, image_url, status').eq('id', id).single();
     if (!n) return Response.json({ status: 'no news' });
+    if (n.status !== 'published') return Response.json({ status: 'draft, skipped' });
     const link = `${SITE}news.html?id=${n.id}`;
     const text = `🪖 <b>${esc(n.title)}</b>\n\n${esc(teaser(n.body ?? ''))}\n\n👉 <a href="${link}">Читать на сайте Чундриков</a>`;
     const img = n.image_url ? new URL(n.image_url, SITE).href : null;

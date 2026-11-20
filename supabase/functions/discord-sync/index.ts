@@ -76,7 +76,8 @@ async function run() {
   const site = (siteRaw ?? []) as (SiteMember & Record<string, unknown>)[];
   const stats: Record<string, number> = {};
   for (const m of holders) {
-    const r = await linkOrCreate(m.user, m.nick, regs.get(m.user.id) ?? null, site);
+    let r = await linkOrCreate(m.user, m.nick, regs.get(m.user.id) ?? null, site);
+    if (r === 'none') r = await returnedOrPing(m, channel?.id ?? null, site);
     stats[r] = (stats[r] ?? 0) + 1;
   }
   out.holders = holders.length; out.site = stats;
@@ -110,4 +111,33 @@ async function run() {
   }
   out.unmatched = unmatched.length;
   return out;
+}
+
+// Человек с ролью, но без записи на сайте и без анкеты:
+// 1) если он есть в бывших (вернулся из гостей) — возвращаем его запись на сайт, ник вводить не нужно;
+// 2) иначе один раз тегаем в канале регистрации с кнопкой.
+async function returnedOrPing(m: any, channelId: string | null, site: SiteMember[]): Promise<string> {
+  const { data: former } = await sb.from('former_members').select('*').eq('discord_id', m.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+  if (former) {
+    const { data, error } = await sb.from('members').insert({
+      game_nick: former.game_nick, discord_nick: displayName(m.user, m.nick), discord_id: m.user.id,
+      clan_role: 'чундрик', real_name: former.real_name, joined_at: former.joined_at,
+    }).select('id, game_nick, discord_nick, discord_id').single();
+    if (error) { console.error('restore', error.message); return 'restore_error'; }
+    await sb.from('former_members').delete().eq('id', former.id);
+    site.push(data);
+    if (channelId) await discord(`/channels/${channelId}/messages`, 'POST', {
+      content: `🔁 <@${m.user.id}> снова с нами! Вернули на сайт с ником **${former.game_nick}**.`, allowed_mentions: { parse: [] },
+    }).catch(() => {});
+    return 'returned';
+  }
+  if (!channelId) return 'none';
+  const { data: pinged } = await sb.from('discord_role_pings').select('discord_id').eq('discord_id', m.user.id).maybeSingle();
+  if (pinged) return 'none';
+  await discord(`/channels/${channelId}/messages`, 'POST', {
+    content: `<@${m.user.id}>, тебе выдали роль «Чундрики»! 🔫 Нажми кнопку ниже и впиши свой игровой ник, чтобы появиться на сайте клана.`,
+    components: [REGISTER_BUTTON], allowed_mentions: { users: [m.user.id] },
+  });
+  await sb.from('discord_role_pings').upsert({ discord_id: m.user.id });
+  return 'pinged_role';
 }

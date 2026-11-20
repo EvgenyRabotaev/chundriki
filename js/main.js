@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin } from './data.js';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtMonth, fmtLong, renderRich, safeUrl, toast, copyText, ROLE_CLASS } from './util.js';
@@ -196,7 +196,67 @@ function renderNewsDetail(n) {
     <h2 class="news-title">${esc(n.title)}</h2>
     ${img ? `<figure class="news-fig news-cover"><img src="${esc(img)}" alt="${esc(n.title)}">${img.startsWith('assets/news/') ? '<figcaption>Изображения: © KRAFTON / PUBG</figcaption>' : ''}</figure>` : ''}
     <div class="prose">${renderRich(n.body)}</div>
-    ${src ? `<p class="news-source">Источник: <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">${esc(n.source_name || src)} ↗</a></p>` : ''}`;
+    ${src ? `<p class="news-source">Источник: <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">${esc(n.source_name || src)} ↗</a></p>` : ''}
+    <section class="comments" id="comments"></section>`;
+  initComments(n.id);
+}
+
+// ---------- Комментарии ----------
+function fmtDateTimeMsk(d) {
+  const dt = new Date(d);
+  if (isNaN(dt)) return '';
+  return new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(dt) + ' МСК';
+}
+function initComments(newsId) {
+  const box = document.getElementById('comments');
+  if (!box) return;
+  let comments = [], session = null, canPost = false, admin = false, draft = '';
+  const draw = () => {
+    const uid = session?.user?.id;
+    const list = comments.length ? comments.map((c) => {
+      const ava = safeUrl(c.author_avatar || '');
+      const del = (uid && (c.user_id === uid || admin)) ? `<button type="button" class="c-del" data-id="${c.id}" title="Удалить" aria-label="Удалить комментарий">×</button>` : '';
+      return `<div class="c-item">${ava ? `<img class="c-ava" src="${esc(ava)}" alt="" width="36" height="36" loading="lazy" referrerpolicy="no-referrer">` : '<span class="c-ava ph"></span>'}
+        <div class="c-main"><div class="c-head"><b class="c-name">${esc(c.author_name || 'Игрок')}</b><time>${esc(fmtDateTimeMsk(c.created_at))}</time>${del}</div>
+        <div class="c-body">${esc(c.body).replace(/\n/g, '<br>')}</div></div></div>`;
+    }).join('') : '<p class="muted">Пока никто не написал. Будь первым!</p>';
+    let form;
+    if (!session) form = '<div class="c-note"><span>Войдите через Discord, чтобы комментировать</span><button type="button" class="auth-login c-login">Войти</button></div>';
+    else if (!canPost) form = '<p class="c-note muted">Комментировать могут только участники клана с ролью «Чундрики» в Discord.</p>';
+    else form = `<form class="c-form"><textarea maxlength="1000" rows="3" placeholder="Ваш комментарий…" required>${esc(draft)}</textarea><div class="c-actions"><span class="c-count">${draft.length}/1000</span><button type="submit" class="btn">Отправить</button></div></form>`;
+    box.innerHTML = `<h3>Комментарии (${comments.length})</h3><div class="c-list">${list}</div>${form}`;
+    const ta = box.querySelector('textarea');
+    if (ta) ta.addEventListener('input', () => { draft = ta.value; box.querySelector('.c-count').textContent = `${draft.length}/1000`; });
+  };
+  box.addEventListener('click', async (e) => {
+    if (e.target.closest('.c-login')) {
+      try { await signInDiscord(location.origin + location.pathname + location.search); } catch (err) { toast('Не удалось начать вход: ' + err.message, true); }
+      return;
+    }
+    const del = e.target.closest('.c-del');
+    if (del && confirm('Удалить комментарий?')) {
+      try { await deleteComment(del.dataset.id); comments = comments.filter((c) => String(c.id) !== del.dataset.id); draw(); }
+      catch (err) { toast(err.message, true); }
+    }
+  });
+  box.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = box.querySelector('.c-form button[type=submit]');
+    const text = draft.trim();
+    if (!text) return;
+    btn.disabled = true;
+    try { comments.push(await addComment(newsId, text)); draft = ''; draw(); }
+    catch (err) { toast(err.message, true); btn.disabled = false; }
+  });
+  const loadUser = async (s) => {
+    session = s; canPost = false; admin = false;
+    if (s) { try { [canPost, admin] = await Promise.all([isChundrik(), isAdmin()]); } catch {} }
+    draw();
+  };
+  draw();
+  getComments(newsId).then((r) => { comments = r; draw(); }).catch((err) => { console.error(err); box.innerHTML = '<p class="error-text">Не удалось загрузить комментарии.</p>'; });
+  getSession().then(loadUser).catch(() => loadUser(null));
+  onAuthChange((s) => { if ((s?.user?.id) !== (session?.user?.id)) setTimeout(() => loadUser(s), 0); });
 }
 if (newsEl) {
   const id = new URLSearchParams(location.search).get('id');

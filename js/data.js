@@ -73,6 +73,16 @@ export async function isAdmin() {
   return !!unwrap(await sb.rpc('is_admin'));
 }
 
+// ---------- Комментарии к новостям ----------
+export async function getComments(newsId) {
+  return unwrap(await sb.from('news_comments').select('id, user_id, author_name, author_avatar, body, created_at').eq('news_id', newsId).order('created_at'));
+}
+export async function addComment(newsId, body) {
+  return unwrap(await sb.from('news_comments').insert({ news_id: newsId, body }).select('id, user_id, author_name, author_avatar, body, created_at').single());
+}
+export async function deleteComment(id) { unwrap(await sb.from('news_comments').delete().eq('id', id)); }
+export async function isChundrik() { return !!unwrap(await sb.rpc('is_chundrik')); }
+
 // ---------- Админка: состав ----------
 export async function createMember(m) { return unwrap(await sb.from('members').insert(clean(m)).select(MEMBER_COLS).single()); }
 export async function updateMember(id, m) { return unwrap(await sb.from('members').update(clean(m)).eq('id', id).select(MEMBER_COLS).single()); }

@@ -433,3 +433,21 @@ dialog h3 { margin: 0 0 4px; }
   .auth-name { max-width: 180px; }
   .topbar nav .auth-admin { padding: 4px 9px; border-bottom: 1px solid currentColor; font-size: 13px !important; }
 }
+
+/* ---------- Комментарии ---------- */
+.comments { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line, rgba(255,255,255,.1)); }
+.comments h3 { margin: 0 0 16px; }
+.c-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.c-ava { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; background: #2a2e32; }
+.c-main { min-width: 0; flex: 1; }
+.c-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.c-name { color: var(--pink); }
+.c-head time { font-size: 12px; opacity: .6; }
+.c-del { margin-left: auto; background: transparent; border: 0; color: var(--text); opacity: .5; font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.c-del:hover { opacity: 1; color: #ff8080; }
+.c-body { margin-top: 4px; overflow-wrap: anywhere; line-height: 1.5; }
+.c-form { margin-top: 18px; }
+.c-form textarea { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.04); color: var(--text); border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 10px 12px; font: inherit; resize: vertical; }
+.c-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.c-count { font-size: 12px; opacity: .6; }
+.c-note { margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }

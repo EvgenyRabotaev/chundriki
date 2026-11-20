@@ -361,7 +361,8 @@ dialog h3 { margin: 0 0 4px; }
 .hall-emoji { font-size: 56px; line-height: 1; }
 .hall-info { min-width: 0; }
 .hall-info h3 { margin: 0 0 4px; font-size: 20px; color: var(--sand); }
-.hall-info p { margin: 0 0 10px; color: #cfcec7; font-size: 15px; }
+.hall-info p { margin: 0 0 10px; color: #cfcec7; font-size: 15px; line-height: 1.4; min-height: 2.8em; }
+.hall-card { align-items: flex-start; }
 .holders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .holders li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding-top: 6px; border-top: 1px dashed var(--line); }
 .holders span { color: var(--olive-2); font-size: 13px; }

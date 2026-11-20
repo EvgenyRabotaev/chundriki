@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges } from './data.js';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin } from './data.js';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtMonth, fmtLong, renderRich, safeUrl, toast, copyText, ROLE_CLASS } from './util.js';
@@ -249,4 +249,32 @@ if (burger) {
   document.getElementById('site-nav').addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
   document.addEventListener('click', (e) => { if (!e.target.closest('.topbar')) setMenu(false); });
+}
+
+// ---------- Вход через Discord (для всех, без прав админа) ----------
+const authBox = document.getElementById('auth-box');
+if (authBox) {
+  const ICON = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M20.3 4.4A17.6 17.6 0 0 0 16 3l-.2.4c1.5.4 2.2.9 3 1.5a12 12 0 0 0-10 0c.8-.6 1.6-1.1 3.1-1.5L11.700 3a17.600 17.600 0 0 0-4.300 1.400C4.700 8.400 4 12.300 4.300 16.100a17.700 17.700 0 0 0 5.300 2.700l1.100-1.800c-.6-.2-1.200-.5-1.700-.9l.4-.3a12.600 12.600 0 0 0 10.800 0l.4.300c-.5.400-1.100.700-1.700.9l1.100 1.800a17.700 17.700 0 0 0 5.300-2.700c.4-4.400-.7-8.300-3-11.700ZM9.700 13.800c-1 0-1.800-.9-1.800-2s.8-2 1.800-2 1.800.9 1.800 2-.8 2-1.800 2Zm4.600 0c-1 0-1.800-.9-1.800-2s.8-2 1.800-2 1.800.9 1.800 2-.8 2-1.800 2Z"/></svg>';
+  let renderSeq = 0;
+  const render = async (session) => {
+    const seq = ++renderSeq;
+    if (!session) {
+      authBox.innerHTML = `<button type="button" class="auth-login">${ICON}<span>Войти</span></button>`;
+      authBox.querySelector('.auth-login').addEventListener('click', async () => {
+        try { await signInDiscord(location.origin + location.pathname + location.search); }
+        catch (e) { toast('Не удалось начать вход: ' + e.message, true); }
+      });
+      return;
+    }
+    const m = session.user?.user_metadata || {};
+    const name = m.custom_claims?.global_name || m.full_name || m.name || 'Игрок';
+    const avatar = safeUrl(m.avatar_url || '');
+    authBox.innerHTML = `<span class="auth-user">${avatar ? `<img class="auth-ava" src="${esc(avatar)}" alt="" width="26" height="26" referrerpolicy="no-referrer">` : ''}<span class="auth-name">${esc(name)}</span></span><span class="auth-admin-slot"></span><button type="button" class="auth-logout">Выйти</button>`;
+    authBox.querySelector('.auth-logout').addEventListener('click', async () => { try { await signOut(); } catch {} render(null); });
+    try {
+      if (await isAdmin() && seq === renderSeq) authBox.querySelector('.auth-admin-slot').innerHTML = '<a class="auth-admin" href="admin.html">Админка</a>';
+    } catch {}
+  };
+  try { render(await getSession()); } catch { render(null); }
+  onAuthChange((s) => { setTimeout(() => render(s), 0); });
 }

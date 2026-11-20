@@ -416,3 +416,20 @@ dialog h3 { margin: 0 0 4px; }
 }
 .login-card .btn-discord { display: inline-block; margin: 6px 0 14px; }
 .login-email summary { cursor: pointer; font-size: 14px; margin-bottom: 10px; }
+
+/* ---------- Вход через Discord ---------- */
+.auth-box { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.auth-login { display: inline-flex; align-items: center; gap: 6px; background: #5865f2; color: #fff; border: 0; border-radius: 8px; padding: 7px 14px; font: 500 14px var(--font-body, inherit); cursor: pointer; }
+.auth-login:hover { background: #4752c4; }
+.auth-user { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
+.auth-ava { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex: none; }
+.auth-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-logout { background: transparent; color: var(--text); opacity: .7; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; padding: 4px 9px; font: 500 12px var(--font-body, inherit); cursor: pointer; }
+.auth-logout:hover { opacity: 1; color: var(--pink); }
+.topbar nav .auth-admin { font-size: 12px; color: var(--sand, #d8c9a0); border: 1px solid currentColor; border-radius: 6px; padding: 3px 8px; opacity: .9; }
+.auth-admin-slot:empty { display: none; }
+@media (max-width: 900px) {
+  .auth-box { padding: 12px 0 4px; flex-wrap: wrap; }
+  .auth-name { max-width: 180px; }
+  .topbar nav .auth-admin { padding: 4px 9px; border-bottom: 1px solid currentColor; font-size: 13px !important; }
+}

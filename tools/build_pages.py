@@ -6,7 +6,7 @@ import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
 BASE = 'https://evgenyrabotaev.github.io/chundriki/'
-V = '17'
+V = '18'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
        ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'
@@ -47,7 +47,7 @@ def page(file, title, desc, body, active, extra_head='', body_class='subpage', s
   <header class="topbar">
     <a class="brand" href="index.html"><img src="assets/favicon-32.png" alt="" width="28" height="28"> CHUNDRIKI</a>
     <button class="burger" id="burger" aria-label="Меню" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button>
-    <nav id="site-nav">{nav}</nav>
+    <nav id="site-nav">{nav}<div class="auth-box" id="auth-box"></div></nav>
   </header>
 {body}
   <footer class="footer">

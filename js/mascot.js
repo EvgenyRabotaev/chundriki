@@ -1,4 +1,4 @@
-// Маскот-болтун: пузырёк в правом нижнем углу. Шутки берёт из таблицы mascot_lines, а если её нет — из запасного пула.
+// Маскот-болтун: сидит в правом нижнем углу, реплики печатает в пузыре слева над собой. Шутки берёт из таблицы mascot_lines, а если её нет — из запасного пула.
 import { getMascotLines, getMascotProfile, getSession } from './data.js?v=33';
 import { FALLBACK } from './mascot-lines.js';
 
@@ -9,7 +9,9 @@ const st = (() => { try { return JSON.parse(localStorage.getItem(LS)) || {}; } c
 const save = () => { try { localStorage.setItem(LS, JSON.stringify(st)); } catch {} };
 const params = new URLSearchParams(location.search);
 const FAST = params.has('mascot'); // ?mascot=1 — для отладки: пузырёк через 1.5 с
-const FIRST_MS = FAST ? 1500 : 20000, GAP_MS = 45000, MAX_BUBBLES = 3;
+const MOBILE = matchMedia('(max-width: 560px)').matches;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FIRST_MS = FAST ? 1200 : 17000, GAP_MS = FAST ? 6000 : 60000, MAX_LINES = MOBILE ? 3 : 6;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 && m < 15) ? c : k === 1 ? a : (k > 1 && k < 5) ? b : c; };
@@ -53,56 +55,44 @@ function nextLine() {
   if (!fresh.length) { used.clear(); fresh = cand; }
   const t = pick(fresh); used.add(t); return fill(t);
 }
-const greet = () => profile ? fill(`Привет, {nick}! Я Чундрик. Ты в клане уже {days}. Хочешь прикол?`) : 'Привет! Я Чундрик, местный маскот. Хочешь прикол?';
+const greet = () => profile ? fill('Привет, {nick}! Ты в клане уже {days}.') : 'Привет! Я Чундрик. Кликни по мне — расскажу прикол.';
 
 function build() {
   const root = document.createElement('div');
-  root.className = 'mchat'; root.id = 'mchat';
-  root.innerHTML = `
-    <div class="mchat-bubble" role="status" hidden><button class="mchat-bubble-x" aria-label="Скрыть">×</button><span class="mchat-bubble-t"></span></div>
-    <section class="mchat-panel" hidden aria-label="Чат с Чундриком">
-      <header><img src="assets/mascot-sm.webp" alt="" width="34" height="34"><b>Чундрик</b><span class="mchat-on">на связи</span>
-        <button class="mchat-mute" type="button"></button><button class="mchat-close" type="button" aria-label="Закрыть">×</button></header>
-      <div class="mchat-log" aria-live="polite"></div>
-      <footer><button class="mchat-more" type="button">Ещё прикол</button></footer>
-    </section>
-    <button class="mchat-fab" type="button" aria-label="Открыть чат с Чундриком"><img src="assets/mascot-sm.webp" alt="" width="64" height="64"></button>`;
-  document.body.appendChild(root);
-  const $ = (s) => root.querySelector(s);
-  const bubble = $('.mchat-bubble'), panel = $('.mchat-panel'), log = $('.mchat-log'), fab = $('.mchat-fab'), mute = $('.mchat-mute');
-  let shown = 0, timer = null, opened = false;
-  const renderMute = () => { mute.textContent = st.muted ? '🔔 Включить' : '🔕 Тише'; mute.title = st.muted ? 'Снова показывать подсказки' : 'Больше не всплывать'; };
-  renderMute();
-  const say = (t, cls = '') => {
-    const m = document.createElement('div'); m.className = 'mchat-msg ' + cls; m.textContent = t; log.appendChild(m);
-    log.scrollTop = log.scrollHeight; return m;
-  };
-  const typing = (t) => new Promise((res) => {
-    const d = say('', 'typing'); d.innerHTML = '<i></i><i></i><i></i>';
-    setTimeout(() => { d.className = 'mchat-msg'; d.textContent = t; log.scrollTop = log.scrollHeight; res(); }, FAST ? 200 : 700);
-  });
-  const hideBubble = () => { bubble.hidden = true; };
-  const open = async () => {
-    hideBubble(); clearTimeout(timer); panel.hidden = false; fab.setAttribute('aria-expanded', 'true');
-    if (!opened) { opened = true; await typing(greet()); await typing(nextLine()); }
-  };
-  const close = () => { panel.hidden = true; fab.setAttribute('aria-expanded', 'false'); };
-  fab.addEventListener('click', () => (panel.hidden ? open() : close()));
-  $('.mchat-close').addEventListener('click', close);
-  $('.mchat-more').addEventListener('click', async (e) => {
-    const b = e.currentTarget; b.disabled = true; say('Ещё прикол!', 'me'); await typing(nextLine()); b.disabled = false;
-  });
-  mute.addEventListener('click', () => { st.muted = !st.muted; save(); renderMute(); if (st.muted) { hideBubble(); clearTimeout(timer); } else schedule(GAP_MS); });
-  $('.mchat-bubble-x').addEventListener('click', (e) => { e.stopPropagation(); hideBubble(); });
-  bubble.addEventListener('click', open);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) close(); });
-  function pop() {
-    if (st.muted || !panel.hidden || shown >= MAX_BUBBLES || document.hidden) return schedule(GAP_MS);
-    shown++; $('.mchat-bubble-t').textContent = nextLine(); bubble.hidden = false;
-    setTimeout(hideBubble, 9000); if (shown < MAX_BUBBLES) schedule(GAP_MS + 9000);
+  root.className = 'mchat';
+  root.innerHTML = `<div class="mchat-bubble" role="status" aria-live="polite"><span class="ghost"></span><span class="typed"></span></div>
+    <button class="mchat-fig" type="button" aria-label="Чундрик: послушать прикол"><img src="assets/mascot-sm.webp" alt="" width="527" height="620"></button>
+    <button class="mchat-x" type="button" aria-label="Спрятать Чундрика" title="Спрятать">×</button>`;
+  const peek = document.createElement('button');
+  peek.className = 'mchat-peek'; peek.type = 'button'; peek.setAttribute('aria-label', 'Вернуть Чундрика'); peek.title = 'Вернуть Чундрика';
+  peek.innerHTML = '<img src="assets/mascot-sm.webp" alt="" width="527" height="620">';
+  document.body.append(root, peek);
+  const bubble = root.querySelector('.mchat-bubble'), ghost = bubble.querySelector('.ghost'), typed = bubble.querySelector('.typed');
+  let timer = null, run = 0, count = 0, greeted = false;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  function applyHidden() { root.hidden = !!st.hidden; peek.hidden = !st.hidden; }
+  async function speak(text) {
+    const my = ++run;
+    bubble.classList.remove('on'); await wait(bubble.classList.contains('on') ? 0 : 50);
+    ghost.textContent = text; typed.textContent = ''; bubble.classList.add('on');
+    if (REDUCED) typed.textContent = text;
+    else for (let i = 1; i <= text.length; i++) { if (my !== run) return; typed.textContent = text.slice(0, i); await wait(28 + Math.random() * 22); }
+    await wait(Math.min(9000, 3000 + text.length * 65));
+    if (my === run) bubble.classList.remove('on');
   }
-  function schedule(ms) { clearTimeout(timer); if (!st.muted) timer = setTimeout(pop, ms); }
-  schedule(FIRST_MS);
+  function schedule(ms) { clearTimeout(timer); if (!st.hidden) timer = setTimeout(auto, ms); }
+  async function auto() {
+    if (st.hidden || document.hidden || count >= MAX_LINES) return count >= MAX_LINES ? undefined : schedule(GAP_MS);
+    count++; const t = greeted ? nextLine() : (greeted = true, greet());
+    await speak(t); schedule(GAP_MS);
+  }
+  root.querySelector('.mchat-fig').addEventListener('click', async () => { clearTimeout(timer); count++; greeted = true; await speak(nextLine()); schedule(GAP_MS); });
+  root.querySelector('.mchat-x').addEventListener('click', () => { st.hidden = true; save(); run++; bubble.classList.remove('on'); clearTimeout(timer); applyHidden(); });
+  peek.addEventListener('click', async () => { st.hidden = false; save(); applyHidden(); clearTimeout(timer); await speak('Я вернулся! ' + nextLine()); schedule(GAP_MS); });
+  let pressT; // долгое нажатие на мобильном тоже прячет
+  root.querySelector('.mchat-fig').addEventListener('touchstart', () => { pressT = setTimeout(() => root.querySelector('.mchat-x').click(), 900); }, { passive: true });
+  ['touchend', 'touchmove', 'touchcancel'].forEach((e) => root.querySelector('.mchat-fig').addEventListener(e, () => clearTimeout(pressT), { passive: true }));
+  applyHidden(); schedule(FIRST_MS);
 }
 
 await load();

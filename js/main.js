@@ -331,7 +331,7 @@ if (authBox) {
 }
 
 // Маскот-болтун (не на админке)
-if (document.body.dataset.page !== 'admin') import('./mascot.js?v=1').catch(() => {});
+if (document.body.dataset.page !== 'admin') import('./mascot.js?v=2').catch(() => {});
 
 
 // ---------- Сегодня в клане ----------

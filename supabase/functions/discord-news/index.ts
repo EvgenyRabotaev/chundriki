@@ -1,25 +1,10 @@
 // Публикация опубликованной новости сайта в Discord-канал (bot_config.discord_news_channel_id).
 // Вызывается тем же триггером, что и telegram-news, с телом {"id": N}.
 import { sb, getConfig, discord } from '../_shared/common.ts';
+import { teaser, postImage } from '../_shared/news_text.ts';
 
 const SECRET = Deno.env.get('SYNC_SECRET')!;
 const SITE = 'https://chundriki.top/';
-
-// первый абзац без markdown/HTML, не длиннее ~300 символов
-function teaser(body: string) {
-  const html = /<\/?(p|h[1-6]|div|br|ul|ol|li|blockquote)\b/i.test(body);
-  let paras: string[];
-  if (html) {
-    paras = body.split(/<\/p>|<br\s*\/?>|<\/h[1-6]>|<\/li>|<\/blockquote>/i)
-      .filter((p) => !/<h[1-6]\b/i.test(p))
-      .map((p) => p.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim());
-  } else {
-    paras = body.split(/\n\s*\n/).map((p) => p.trim()).filter((p) => !p.startsWith('#') && !p.startsWith('!'));
-  }
-  let t = (paras.find((p) => p) ?? '').replace(/\*\*|__|~~|`/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\s+/g, ' ').trim();
-  if (t.length > 300) t = t.slice(0, 300).replace(/\s+\S*$/, '') + '…';
-  return t;
-}
 
 Deno.serve(async (req) => {
   if (!SECRET || req.headers.get('x-sync-secret') !== SECRET) return new Response('forbidden', { status: 403 });
@@ -37,7 +22,8 @@ Deno.serve(async (req) => {
       description: `${teaser(n.body ?? '')}\n\n👉 [Читать на сайте Чундриков](${link})`,
       color: 0x8a9a5b,
     };
-    if (n.image_url) embed.image = { url: new URL(n.image_url, SITE).href };
+    const img = postImage(n.image_url, n.body ?? '', SITE);
+    if (img) embed.image = { url: img };
     const r = await discord(`/channels/${channel}/messages`, 'POST', { embeds: [embed], allowed_mentions: { parse: [] } });
     return Response.json({ status: r?.id ? 'sent' : 'error', error: r?.id ? undefined : JSON.stringify(r).slice(0, 300) });
   } catch (e) {

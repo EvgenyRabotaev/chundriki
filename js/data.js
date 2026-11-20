@@ -124,7 +124,7 @@ export async function revokeBadge(memberId, badgeId) {
 // ---------- Новости ----------
 const NEWS_COLS = 'id, title, body, image_url, source_url, source_name, published_at, pinned, status';
 export async function getNews(limit, withDrafts = false) {
-  let q = sb.from('news').select(NEWS_COLS);
+  let q = sb.from('news').select(withDrafts ? NEWS_COLS + ', preview_token' : NEWS_COLS);
   if (!withDrafts) q = q.eq('status', 'published');
   q = q.order('pinned', { ascending: false }).order('published_at', { ascending: false });
   if (limit) q = q.limit(limit);
@@ -140,3 +140,11 @@ export async function getNewsItem(id, previewToken) {
 export async function createNews(n) { return unwrap(await sb.from('news').insert(clean(n)).select(NEWS_COLS).single()); }
 export async function updateNews(id, n) { return unwrap(await sb.from('news').update(clean(n)).eq('id', id).select(NEWS_COLS).single()); }
 export async function deleteNews(id) { unwrap(await sb.from('news').delete().eq('id', id)); }
+
+// Картинка новости в Supabase Storage (бакет news, писать могут только админы)
+export async function uploadNewsImage(blob, ext = 'webp') {
+  const d = new Date();
+  const path = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${ext}`;
+  unwrap(await sb.storage.from('news').upload(path, blob, { contentType: blob.type || 'image/webp', cacheControl: '31536000', upsert: false }));
+  return sb.storage.from('news').getPublicUrl(path).data.publicUrl;
+}

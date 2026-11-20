@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=126">
+  <link rel="stylesheet" href="css/style.css?v=127">
 </head>
 <body>
   <header class="topbar">
@@ -118,7 +118,12 @@
   </div>
 
   <dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
+  <dialog id="news-dlg" class="dlg-wide"></dialog>
+  <dialog id="preview-dlg" class="dlg-wide dlg-preview">
+    <header class="ned-head"><h3>Предпросмотр</h3><a id="preview-open" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Открыть на сайте ↗</a><button type="button" class="icon-x" id="preview-close" aria-label="Закрыть" title="Закрыть">×</button></header>
+    <div id="preview-body" class="preview-body"></div>
+  </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/admin.js?v=4"></script>
+  <script type="module" src="js/admin.js?v=5"></script>
 </body>
 </html>

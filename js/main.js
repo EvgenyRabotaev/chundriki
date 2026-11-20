@@ -1,7 +1,8 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js?v=26';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js?v=27';
+import { newsDetailHtml, excerpt } from './news-view.js?v=27';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
-import { esc, fmtDate, fmtMonth, fmtLong, renderRich, safeUrl, toast, copyText, ROLE_CLASS } from './util.js';
+import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=27';
 
 // ---------- Состав ----------
 let members = [];
@@ -177,10 +178,6 @@ const detailEl = document.getElementById('news-detail');
 const newsHref = (id) => `news.html?id=${id}`;
 const PLACEHOLDER_IMG = 'assets/hero-bg-1280.webp';
 
-function excerpt(body, n = 170) {
-  const t = String(body || '').replace(/[#*>\[\]]|\(https?:[^)]*\)/g, '').replace(/^\s*[-•]\s+/gm, '').replace(/\s+/g, ' ').trim();
-  return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t;
-}
 function newsCard(n) {
   const img = safeUrl(n.image_url);
   return `<a class="news-card ${n.pinned ? 'pinned' : ''}" href="${newsHref(n.id)}">
@@ -189,15 +186,8 @@ function newsCard(n) {
       <h3>${esc(n.title)}</h3><p>${esc(excerpt(n.body))}</p></div></a>`;
 }
 function renderNewsDetail(n) {
-  const img = safeUrl(n.image_url), src = safeUrl(n.source_url);
   document.title = `${n.title} — Chundriki`;
-  detailEl.innerHTML = `<a class="back-link" href="news.html">← Все новости</a>${n.status === 'draft' ? '<p class="draft-banner">📝 Черновик — ещё не опубликован, на сайте и в Telegram его не видно</p>' : ''}
-    <time datetime="${esc(n.published_at)}">${esc(fmtLong(n.published_at))}</time>
-    <h2 class="news-title">${esc(n.title)}</h2>
-    ${img ? `<figure class="news-fig news-cover"><img src="${esc(img)}" alt="${esc(n.title)}">${img.startsWith('assets/news/') ? '<figcaption>Изображения: © KRAFTON / PUBG</figcaption>' : ''}</figure>` : ''}
-    <div class="prose">${renderRich(n.body)}</div>
-    ${src ? `<p class="news-source">Источник: <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">${esc(n.source_name || src)} ↗</a></p>` : ''}
-    <section class="comments" id="comments"></section>`;
+  detailEl.innerHTML = newsDetailHtml(n);
   initComments(n.id);
 }
 

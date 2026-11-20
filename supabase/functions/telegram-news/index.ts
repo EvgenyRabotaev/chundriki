@@ -1,6 +1,7 @@
 // Публикация новой новости сайта в Telegram-группу клана.
 // Вызывается триггером на insert в public.news (через pg_net) с телом {"id": N}.
 import { sb, getConfig, setConfig } from '../_shared/common.ts';
+import { teaser, postImage } from '../_shared/news_text.ts';
 
 const SECRET = Deno.env.get('SYNC_SECRET')!;
 const TG = `https://api.telegram.org/bot${Deno.env.get('TELEGRAM_BOT_TOKEN')}`;
@@ -10,14 +11,6 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 async function tg(method: string, body: unknown) {
   const r = await fetch(`${TG}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   return await r.json();
-}
-
-// первый абзац текста без markdown, не длиннее ~300 символов
-function teaser(body: string) {
-  const para = body.split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith('#') && !p.startsWith('!')) ?? '';
-  let t = para.replace(/\*\*|__|`/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\s+/g, ' ').trim();
-  if (t.length > 300) t = t.slice(0, 300).replace(/\s+\S*$/, '') + '…';
-  return t;
 }
 
 // куда писать: из bot_config, а если не задано — ищем группу, куда бота добавили
@@ -43,7 +36,7 @@ Deno.serve(async (req) => {
     if (n.status !== 'published') return Response.json({ status: 'draft, skipped' });
     const link = `${SITE}news.html?id=${n.id}`;
     const text = `🪖 <b>${esc(n.title)}</b>\n\n${esc(teaser(n.body ?? ''))}\n\n👉 <a href="${link}">Читать на сайте Чундриков</a>`;
-    const img = n.image_url ? new URL(n.image_url, SITE).href : null;
+    const img = postImage(n.image_url, n.body ?? '', SITE);
     let res = img ? await tg('sendPhoto', { chat_id: chat, photo: img, caption: text.slice(0, 1024), parse_mode: 'HTML' }) : null;
     if (!res?.ok) res = await tg('sendMessage', { chat_id: chat, text, parse_mode: 'HTML', link_preview_options: { url: link } });
     return Response.json({ status: res.ok ? 'sent' : 'error', error: res.ok ? undefined : res.description });

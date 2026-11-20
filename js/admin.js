@@ -1,9 +1,9 @@
-import * as db from './data.js?v=27';
+import * as db from './data.js?v=33';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
-import { esc, fmtDate, fmtLong, toast, safeUrl } from './util.js?v=27';
-import { newsDetailHtml } from './news-view.js?v=27';
-import { toEditorHtml } from './rich.js?v=27';
-import { createEditor } from './editor.js?v=27';
+import { esc, fmtDate, fmtLong, toast, safeUrl } from './util.js?v=33';
+import { newsDetailHtml } from './news-view.js?v=33';
+import { toEditorHtml } from './rich.js?v=33';
+import { createEditor } from './editor.js?v=33';
 
 const $ = (id) => document.getElementById(id);
 const views = ['loading', 'login', 'denied', 'admin'];
@@ -51,7 +51,7 @@ db.onAuthChange((session) => route(session));
 db.getSession().then(route).catch(() => show('login'));
 
 // ---------- Вкладки ----------
-const TABS = ['members', 'former', 'videos', 'badges', 'news'];
+const TABS = ['members', 'former', 'videos', 'badges', 'news', 'events'];
 function openTab(name) {
   if (!TABS.includes(name)) name = 'members';
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x.dataset.tab === name));
@@ -106,9 +106,11 @@ const memberFields = [
   { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'чундрик', required: true },
   { name: 'real_name', label: 'Реальное имя' },
   { name: 'joined_at', label: 'Дата вступления', type: 'date', default: today() },
+  { name: 'birthday', label: 'День рождения', type: 'date', hint: 'Необязательно. Хранится приватно, на сайте виден только день и месяц в блоке «Сегодня в клане».' },
 ];
 let members = [];
-async function loadMembers() { members = await db.getMembers(); renderMembers(); if (typeof renderBadges === 'function') renderBadges(); }
+let birthdays = new Map();
+async function loadMembers() { members = await db.getMembers(); try { birthdays = new Map((await db.getBirthdays()).map((b) => [b.member_id, b.birthday])); } catch {} renderMembers(); if (typeof renderBadges === 'function') renderBadges(); }
 function renderMembers() {
   const q = $('members-search').value.trim().toLowerCase();
   const rows = members.filter((m) => !q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q)));
@@ -125,14 +127,16 @@ function renderMembers() {
 $('members-search').addEventListener('input', renderMembers);
 $('add-member').addEventListener('click', async () => {
   const d = await openForm('Новый участник', memberFields); if (!d) return;
-  await guard(async () => { await db.createMember(d); await loadMembers(); }, 'Участник добавлен');
+  const { birthday, ...md } = d;
+  await guard(async () => { const m = await db.createMember(md); if (birthday) await db.setBirthday(m.id, birthday); await loadMembers(); }, 'Участник добавлен');
 });
 $('members-body').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
   const m = members.find((x) => x.id == b.dataset.id);
   if (b.dataset.act === 'edit') {
-    const d = await openForm('Изменить: ' + m.game_nick, memberFields, m); if (!d) return;
-    await guard(async () => { await db.updateMember(m.id, d); await loadMembers(); }, 'Сохранено');
+    const d = await openForm('Изменить: ' + m.game_nick, memberFields, { ...m, birthday: birthdays.get(m.id) || '' }); if (!d) return;
+    const { birthday, ...md } = d;
+    await guard(async () => { await db.updateMember(m.id, md); if ((birthday || '') !== (birthdays.get(m.id) || '')) await db.setBirthday(m.id, birthday); await loadMembers(); }, 'Сохранено');
   } else if (b.dataset.act === 'badges') {
     await editMemberBadges(m);
   } else if (b.dataset.act === 'move') {
@@ -455,6 +459,39 @@ $('badges-body').addEventListener('click', async (e) => {
   }
 });
 
+// ---------- События ----------
+const eventFields = [
+  { name: 'title', label: 'Заголовок', required: true },
+  { name: 'description', label: 'Описание', type: 'textarea', rows: 2 },
+  { name: 'event_date', label: 'Дата', type: 'date', required: true, default: today() },
+  { name: 'recurring_yearly', label: 'Повторять каждый год', type: 'select', options: ['no', 'yes'], labels: { no: 'Нет, один раз', yes: 'Да, каждый год' } },
+  { name: 'emoji', label: 'Эмодзи', placeholder: '🎉' },
+];
+let events = [];
+async function loadEvents() { events = await db.getClanEvents(); renderEvents(); }
+function renderEvents() {
+  $('events-body').innerHTML = events.map((e) => `<tr><td>${esc(e.emoji || '📅')}</td><td>${fmtDate(e.event_date)}</td><td>${e.recurring_yearly ? 'каждый год' : 'один раз'}</td>
+    <td><b>${esc(e.title)}</b><div class="muted">${esc(e.description || '')}</div></td>
+    <td class="actions"><button class="btn btn-olive btn-sm" data-act="edit" data-id="${e.id}">Изменить</button>
+    <button class="btn btn-danger btn-sm" data-act="del" data-id="${e.id}">Удалить</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Событий пока нет</td></tr>';
+}
+const evOut = (d) => ({ ...d, recurring_yearly: d.recurring_yearly === 'yes' });
+$('add-event').addEventListener('click', async () => {
+  const d = await openForm('Новое событие', eventFields); if (!d) return;
+  await guard(async () => { await db.createClanEvent(evOut(d)); await loadEvents(); }, 'Событие добавлено');
+});
+$('events-body').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const x = events.find((y) => y.id == b.dataset.id);
+  if (b.dataset.act === 'edit') {
+    const d = await openForm('Изменить событие', eventFields, { ...x, recurring_yearly: x.recurring_yearly ? 'yes' : 'no' }); if (!d) return;
+    await guard(async () => { await db.updateClanEvent(x.id, evOut(d)); await loadEvents(); }, 'Сохранено');
+  } else if (b.dataset.act === 'del') {
+    if (!confirm(`Удалить событие «${x.title}»?`)) return;
+    await guard(async () => { await db.deleteClanEvent(x.id); await loadEvents(); }, 'Удалено');
+  }
+});
+
 // Выдача и снятие значков у участника: чекбоксы + необязательная заметка
 async function editMemberBadges(m) {
   if (!badges.length) { toast('Сначала создайте значок на вкладке «Значки»', true); return; }
@@ -484,5 +521,5 @@ async function editMemberBadges(m) {
 }
 
 async function loadAll() {
-  await Promise.all([loadBadges(), loadNews(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
+  await Promise.all([loadEvents(), loadBadges(), loadNews(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
 }

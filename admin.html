@@ -58,6 +58,7 @@
         <button class="tab" data-tab="former">Ушедшие</button>
         <button class="tab" data-tab="videos">Видео</button>
         <button class="tab" data-tab="badges">Значки</button>
+        <button class="tab" data-tab="events">События</button>
         <button class="tab" data-tab="news">Новости</button>
       </div>
 
@@ -112,6 +113,17 @@
         <div class="table-wrap"><table>
           <thead><tr><th>Значок</th><th>Название</th><th>Описание</th><th>Выдан</th><th></th></tr></thead>
           <tbody id="badges-body"></tbody>
+        </table></div>
+      </section>
+
+      <section id="tab-events" hidden>
+        <div class="toolbar">
+          <span class="muted">Годовщины вступления и дни рождения (поле в карточке участника) подставляются сами. Здесь — свои события; блок «Сегодня в клане» на главной появляется только в день события.</span>
+          <button class="btn btn-pink btn-sm" id="add-event">+ Новое событие</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th></th><th>Дата</th><th>Повтор</th><th>Событие</th><th></th></tr></thead>
+          <tbody id="events-body"></tbody>
         </table></div>
       </section>
     </div>

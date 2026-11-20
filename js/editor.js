@@ -1,6 +1,6 @@
 // Визуальный редактор текста новости: contenteditable + панель иконок + изменение размера картинок.
 // Результат всегда проходит через sanitizeHtml.
-import { sanitizeHtml, safeHref, safeImgSrc } from './rich.js?v=27';
+import { sanitizeHtml, safeHref, safeImgSrc } from './rich.js?v=33';
 
 const I = (d, extra = '') => `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const T = (txt) => `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><text x="12" y="17" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="13" fill="currentColor">${txt}</text></svg>`;

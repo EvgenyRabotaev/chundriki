@@ -148,3 +148,15 @@ export async function uploadNewsImage(blob, ext = 'webp') {
   unwrap(await sb.storage.from('news').upload(path, blob, { contentType: blob.type || 'image/webp', cacheControl: '31536000', upsert: false }));
   return sb.storage.from('news').getPublicUrl(path).data.publicUrl;
 }
+// ---------- Календарь ----------
+export async function getTodayEvents() { return unwrap(await sb.rpc('clan_events_on')); }
+const EVENT_COLS = 'id, title, description, event_date, recurring_yearly, emoji';
+export async function getClanEvents() { return unwrap(await sb.from('clan_events').select(EVENT_COLS).order('event_date')); }
+export async function createClanEvent(e) { return unwrap(await sb.from('clan_events').insert(clean(e)).select(EVENT_COLS).single()); }
+export async function updateClanEvent(id, e) { return unwrap(await sb.from('clan_events').update(clean(e)).eq('id', id).select(EVENT_COLS).single()); }
+export async function deleteClanEvent(id) { unwrap(await sb.from('clan_events').delete().eq('id', id)); }
+export async function getBirthdays() { return unwrap(await sb.from('member_birthdays').select('member_id, birthday')); }
+export async function setBirthday(memberId, birthday) {
+  if (!birthday) unwrap(await sb.from('member_birthdays').delete().eq('member_id', memberId));
+  else unwrap(await sb.from('member_birthdays').upsert({ member_id: memberId, birthday }));
+}

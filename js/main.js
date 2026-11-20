@@ -1,8 +1,8 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik } from './data.js?v=27';
-import { newsDetailHtml, excerpt } from './news-view.js?v=27';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=33';
+import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
-import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=27';
+import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=33';
 
 // ---------- Состав ----------
 let members = [];
@@ -329,3 +329,22 @@ if (authBox) {
   try { render(await getSession()); } catch { render(null); }
   onAuthChange((s) => { setTimeout(() => render(s), 0); });
 }
+
+// Маскот-болтун (не на админке)
+if (document.body.dataset.page !== 'admin') import('./mascot.js?v=1').catch(() => {});
+
+
+// ---------- Сегодня в клане ----------
+// Блок есть в разметке только если сегодня (по Москве) что-то происходит; иначе его нет совсем.
+(async function todayEvents() {
+  if (document.body.dataset.page !== 'index') return;
+  let ev;
+  try { ev = await getTodayEvents(); } catch { return; }
+  if (!ev || !ev.length) return;
+  const sec = document.createElement('section');
+  sec.className = 'today'; sec.id = 'today'; sec.setAttribute('aria-label', 'Сегодня в клане');
+  sec.innerHTML = `<div class="today-in"><span class="kicker">// сегодня в клане</span><ul class="today-list">${ev.map((e) =>
+    `<li><span class="today-ico" aria-hidden="true">${esc(e.emoji || '📅')}</span><div><b>${esc(e.title)}</b>${e.description ? `<span>${esc(e.description)}</span>` : ''}</div></li>`).join('')}</ul></div>`;
+  const main = document.querySelector('main');
+  if (main) main.prepend(sec);
+})();

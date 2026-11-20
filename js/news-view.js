@@ -1,6 +1,6 @@
 // Разметка новости — общая для сайта и предпросмотра в админке
-import { esc, fmtLong, safeUrl } from './util.js?v=27';
-import { renderBody, bodyText } from './rich.js?v=27';
+import { esc, fmtLong, safeUrl } from './util.js?v=33';
+import { renderBody, bodyText } from './rich.js?v=33';
 
 export function excerpt(body, n = 170) {
   const t = bodyText(body).replace(/\s+/g, ' ').trim();

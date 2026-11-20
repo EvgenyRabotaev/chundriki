@@ -1,6 +1,6 @@
 // Текст новостей: старый мини-markdown или HTML из визуального редактора.
 // HTML всегда проходит через строгий белый список — и на сайте, и в редакторе.
-import { esc, renderRich } from './util.js?v=27';
+import { esc, renderRich } from './util.js?v=33';
 
 export const isHtmlBody = (body) => /^\s*</.test(String(body ?? ''));
 

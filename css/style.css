@@ -595,3 +595,14 @@ body[data-page="moments"] > main, body[data-page="moments"] > .footer { position
   body[data-page="moments"]::before { height: 460px; background-image: linear-gradient(to bottom, rgba(18,20,22,.4) 0%, rgba(18,20,22,.6) 55%, var(--bg) 100%), url(../assets/moments-bg-1280.webp); background-position: 50% 0, 70% 0; } }
 body[data-page="moments"] .page-head h1, body[data-page="moments"] .page-lead { text-shadow: 0 2px 14px rgba(0,0,0,.8); }
 body[data-page="moments"] .page-lead { color: #c9ced1; }
+/* Сегодня в клане: полоса под героем, есть только когда есть событие */
+.today { max-width: 1100px; margin: 28px auto 0; padding: 0 20px; }
+.today-in { position: relative; padding: 16px 20px 14px; border: 1px solid #5a5226; border-left: 4px solid var(--sand); border-radius: var(--radius);
+  background: linear-gradient(100deg, rgba(200,185,138,.16), rgba(32,36,39,.92) 55%); box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); }
+.today .kicker { color: var(--sand); }
+.today-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 32px; }
+.today-list li { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.today-ico { font-size: 28px; line-height: 1; filter: drop-shadow(0 0 6px rgba(200,185,138,.45)); }
+.today-list b { display: block; font-size: 18px; color: var(--text); overflow-wrap: anywhere; }
+.today-list span + span, .today-list div span { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+@media (max-width: 600px) { .today { padding: 0 14px; } .today-list b { font-size: 16px; } }

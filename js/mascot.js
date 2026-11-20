@@ -12,7 +12,7 @@ const FAST = params.has('mascot'); // ?mascot=1 — для отладки: пу�
 const MOBILE = matchMedia('(max-width: 560px)').matches;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FIRST_MS = FAST ? 1200 : 12000, GAP_MS = FAST ? 6000 : 60000, MAX_LINES = MOBILE ? 5 : 10;
-const IMG = '<img src="assets/mascot-sit.webp?v=3" srcset="assets/mascot-sit-sm.webp?v=3 210w, assets/mascot-sit.webp?v=3 420w" sizes="(max-width: 560px) 90px, 140px" alt="" width="420" height="601">';
+const IMG = '<img src="assets/mascot-sit2.webp?v=4" srcset="assets/mascot-sit2-sm.webp?v=4 210w, assets/mascot-sit2.webp?v=4 420w" sizes="(max-width: 560px) 90px, 140px" alt="" width="420" height="598">';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 && m < 15) ? c : k === 1 ? a : (k > 1 && k < 5) ? b : c; };

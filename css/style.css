@@ -321,6 +321,7 @@ dialog h3 { margin: 0 0 4px; }
 .subpage .section { padding-top: clamp(30px, 5vw, 50px); }
 .page-head h1 { font-family: var(--font-head); font-weight: 400; font-size: clamp(30px, 5vw, 46px); margin: 4px 0 0; letter-spacing: 1px; }
 .page-lead { color: var(--muted); margin: 14px 0 0; max-width: 60ch; }
+#hall .page-lead { max-width: none; }
 .section-head.split { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
 .view-all { color: var(--pink); text-decoration: none; font-weight: 500; white-space: nowrap; padding-bottom: 6px; }
 .view-all:hover { text-decoration: underline; }

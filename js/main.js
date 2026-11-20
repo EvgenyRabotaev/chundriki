@@ -329,7 +329,7 @@ if (authBox) {
     const m = session.user?.user_metadata || {};
     const name = m.custom_claims?.global_name || m.full_name || m.name || 'Игрок';
     const avatar = safeUrl(m.avatar_url || '');
-    authBox.innerHTML = `<span class="auth-user">${avatar ? `<img class="auth-ava" src="${esc(avatar)}" alt="" width="26" height="26" referrerpolicy="no-referrer">` : ''}<span class="auth-name">${esc(name)}</span></span><span class="auth-admin-slot"></span><button type="button" class="auth-logout">Выйти</button>`;
+    authBox.innerHTML = `<span class="auth-user">${avatar ? `<img class="auth-ava" src="${esc(avatar)}" alt="" width="26" height="26" referrerpolicy="no-referrer">` : ''}<span class="auth-name">${esc(name)}</span></span><span class="auth-admin-slot"></span><button type="button" class="auth-logout" aria-label="Выйти" data-tip="Выйти"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>`;
     authBox.querySelector('.auth-logout').addEventListener('click', async () => { try { await signOut(); } catch {} render(null); });
     try {
       if (await isAdmin() && seq === renderSeq) authBox.querySelector('.auth-admin-slot').innerHTML = '<a class="auth-admin" href="admin.html">Админка</a>';

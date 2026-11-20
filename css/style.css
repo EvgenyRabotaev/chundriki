@@ -460,3 +460,9 @@ dialog h3 { margin: 0 0 4px; }
 .topbar .auth-login svg { color: #8f99ff; opacity: 1; }
 .topbar .auth-login:hover { background: rgba(88,101,242,.25); border-color: rgba(88,101,242,.85); color: var(--text); }
 @media (max-width: 900px) { .topbar .auth-login { padding: 8px 16px; margin-top: 8px; } }
+.topbar .auth-user { font-size: 15px; font-weight: 500; color: var(--text); opacity: .85; }
+.auth-logout { position: relative; display: inline-flex; align-items: center; justify-content: center; border: 0; padding: 4px; border-radius: 6px; opacity: .6; }
+.auth-logout:hover { opacity: 1; color: var(--pink); background: rgba(255,255,255,.06); }
+.auth-logout::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #1b1e21; color: var(--text); border: 1px solid var(--line, rgba(255,255,255,.12)); font-size: 12px; padding: 3px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.auth-logout:hover::after, .auth-logout:focus-visible::after { opacity: 1; }
+@media (max-width: 900px) { .topbar .auth-user { font-size: 17px; } .auth-logout::after { left: auto; right: auto; transform: none; top: 50%; margin-left: 34px; translate: 0 -50%; } }

@@ -24,7 +24,9 @@ async function run() {
   const human = roles.filter((r: any) => !r.managed);
   const role = human.find((r: any) => r.name.toLowerCase() === ROLE_NAME) ?? human.find((r: any) => r.name.toLowerCase().includes(ROLE_NAME));
   const channels = await discord(`/guilds/${guildId}/channels`);
-  const channel = channels.find((c: any) => c.type === 0 && c.name.toLowerCase().includes(CHANNEL_NAME));
+  // канал можно задать вручную (bot_config.channel_override), иначе ищем по имени
+  const override = await getConfig('channel_override');
+  const channel = (override && channels.find((c: any) => c.id === override)) || channels.find((c: any) => c.type === 0 && c.name.toLowerCase().includes(CHANNEL_NAME));
   if (role) await setConfig('role_id', role.id);
   if (channel) await setConfig('channel_id', channel.id);
 

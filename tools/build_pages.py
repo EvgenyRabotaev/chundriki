@@ -5,8 +5,8 @@
 import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
-BASE = 'https://evgenyrabotaev.github.io/chundriki/'
-V = '23'
+BASE = 'https://chundriki.top/'
+V = '24'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
        ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'
@@ -21,7 +21,6 @@ def page(file, title, desc, body, active, extra_head='', body_class='subpage', s
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="robots" content="noindex, nofollow">  <!-- TEMP: убрать, когда сайт откроем для поиска -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{t}</title>
   <meta name="description" content="{d}">
@@ -164,4 +163,17 @@ page('about.html', 'О клане — Chundriki', 'История клана Chu
       ''' + ad_full() + '''
     </section>
   </main>''', 'about.html')
+
+# ---- robots.txt и sitemap.xml ----
+import re, json, urllib.request
+(ROOT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /admin.html\n\nSitemap: {BASE}sitemap.xml\n', encoding='utf-8')
+urls = [BASE if h == 'index.html' else BASE + h for h, _ in NAV]
+try:
+    cfg = (ROOT / 'js' / 'config.js').read_text(encoding='utf-8')
+    su = re.search(r"SUPABASE_URL\s*=\s*['\"]([^'\"]+)", cfg).group(1); sk = re.search(r"SUPABASE_ANON_KEY\s*=\s*['\"]([^'\"]+)", cfg).group(1)
+    rq = urllib.request.Request(su + '/rest/v1/news?select=id&order=id', headers={'apikey': sk, 'Authorization': 'Bearer ' + sk})
+    urls += [f'{BASE}news.html?id={r["id"]}' for r in json.load(urllib.request.urlopen(rq, timeout=15))]
+except Exception as e:
+    print('sitemap: без новостей:', e)
+(ROOT / 'sitemap.xml').write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(f'  <url><loc>{html.escape(u)}</loc></url>\n' for u in urls) + '</urlset>\n', encoding='utf-8')
 print('ok')

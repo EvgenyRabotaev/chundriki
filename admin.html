@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=117">
+  <link rel="stylesheet" href="css/style.css?v=118">
 </head>
 <body>
   <header class="topbar">
@@ -27,11 +27,15 @@
       <div class="card login-card">
         <img src="assets/favicon-180.png" alt="">
         <h2>Вход для админов</h2>
-        <p class="muted">Введите почту — мы пришлём ссылку для входа. Пароль не нужен.</p>
-        <form id="login-form">
-          <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email">
-          <button class="btn btn-pink" type="submit">Прислать ссылку</button>
-        </form>
+        <p class="muted">Войдите через свой Discord-аккаунт. Доступ есть только у руководства клана.</p>
+        <button class="btn btn-discord" id="login-discord" type="button">Войти через Discord</button>
+        <details class="login-email">
+          <summary class="muted">Войти по почте</summary>
+          <form id="login-form">
+            <input type="email" id="login-email" placeholder="you@example.com" required autocomplete="email">
+            <button class="btn btn-ghost" type="submit">Прислать ссылку</button>
+          </form>
+        </details>
         <p id="login-msg" class="muted"></p>
       </div>
     </div>
@@ -115,6 +119,6 @@
 
   <dialog id="dlg"><form id="dlg-form" method="dialog"></form></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/admin.js"></script>
+  <script type="module" src="js/admin.js?v=2"></script>
 </body>
 </html>

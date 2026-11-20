@@ -14,10 +14,11 @@ const today = () => new Date().toISOString().slice(0, 10);
 let started = false;
 async function route(session) {
   if (!session) { started = false; show('login'); return; }
+  const who = session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email;
   try {
-    if (!(await db.isAdmin())) { $('denied-email').textContent = session.user.email; show('denied'); return; }
+    if (!(await db.isAdmin())) { $('denied-email').textContent = who; show('denied'); return; }
   } catch (e) { toast('Ошибка проверки доступа: ' + e.message, true); show('login'); return; }
-  $('admin-email').textContent = session.user.email;
+  $('admin-email').textContent = who;
   show('admin');
   if (!started) { started = true; loadAll(); }
 }
@@ -34,6 +35,11 @@ $('login-form').addEventListener('submit', async (e) => {
     msg.textContent = /signups not allowed|not found|otp_disabled/i.test(err.message)
       ? 'Этой почты нет среди админов.' : 'Ошибка: ' + err.message;
   } finally { btn.disabled = false; }
+});
+$('login-discord').addEventListener('click', async (e) => {
+  e.currentTarget.disabled = true;
+  try { await db.signInDiscord(new URL('admin.html', location.href).href); }
+  catch (err) { $('login-msg').textContent = 'Ошибка: ' + err.message; e.currentTarget.disabled = false; }
 });
 for (const id of ['logout', 'denied-logout']) $(id).addEventListener('click', async () => { await db.signOut(); show('login'); });
 

@@ -59,6 +59,9 @@ export async function sendMagicLink(email, redirectTo) {
     options: { shouldCreateUser: false, emailRedirectTo: redirectTo },
   }));
 }
+export async function signInDiscord(redirectTo) {
+  unwrap(await sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo, scopes: 'identify email' } }));
+}
 export async function getSession() {
   return unwrap(await sb.auth.getSession()).session;
 }

@@ -451,3 +451,7 @@ dialog h3 { margin: 0 0 4px; }
 .c-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 .c-count { font-size: 12px; opacity: .6; }
 .c-note { margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.topbar .auth-login { background: transparent; color: var(--text); opacity: .85; padding: 3px 0; gap: 5px; font-size: 15px; font-weight: 500; border-radius: 0; }
+.topbar .auth-login svg { width: 15px; height: 15px; opacity: .8; }
+.topbar .auth-login:hover { background: transparent; opacity: 1; color: var(--pink, #ff7eb6); }
+@media (max-width: 900px) { .topbar .auth-login { font-size: 17px; padding: 13px 0; } }

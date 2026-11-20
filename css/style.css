@@ -456,3 +456,7 @@ dialog h3 { margin: 0 0 4px; }
 .topbar .auth-login:hover { background: transparent; opacity: 1; color: var(--pink, #ff7eb6); }
 @media (max-width: 900px) { .topbar .auth-login { font-size: 17px; padding: 13px 0; } }
 @media (min-width: 901px) { .topbar nav { align-items: center; } }
+.topbar .auth-login { padding: 3px 12px; border: 1px solid rgba(88,101,242,.55); background: rgba(88,101,242,.12); border-radius: 999px; opacity: 1; }
+.topbar .auth-login svg { color: #8f99ff; opacity: 1; }
+.topbar .auth-login:hover { background: rgba(88,101,242,.25); border-color: rgba(88,101,242,.85); color: var(--text); }
+@media (max-width: 900px) { .topbar .auth-login { padding: 8px 16px; margin-top: 8px; } }

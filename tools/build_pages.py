@@ -127,10 +127,10 @@ page('news.html', 'Новости PUBG и клана — Chundriki', 'Свежи
   '\n      <div id="news-list" class="news-grid"><p class="muted">Загружаем новости…</p></div>\n      <article id="news-detail" class="news-detail" hidden></article>\n    </section>\n  </main>', 'news.html')
 
 # ---------- roster ----------
-page('roster.html', 'Состав клана — Chundriki', 'Полный состав клана Chundriki в PUBG: ники, роли, Discord и значки бойцов.',
+page('roster.html', 'Состав клана — Chundriki', 'Полный состав клана Chundriki в PUBG: ники, роли, Discord и значки Чундриков.',
   '''<main>
     <section class="section" id="roster">
-      ''' + head('// сквад', 'Состав', 'Все бойцы клана: поиск по нику, фильтр по роли.') + '''
+      ''' + head('// сквад', 'Состав', 'Все Чундрики клана: поиск по нику, фильтр по роли.') + '''
       <div class="roster-tools">
         <input type="search" id="roster-search" placeholder="Поиск по нику или имени…" aria-label="Поиск по составу">
         <div class="role-filter" role="group" aria-label="Фильтр по роли">

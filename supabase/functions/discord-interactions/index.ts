@@ -16,16 +16,31 @@ const input = (id: string, label: string, required: boolean, max: number, value?
   type: 1, components: [{ type: 4, custom_id: id, label, style: 1, required, max_length: max, ...(value ? { value } : {}), ...(placeholder ? { placeholder } : {}) }],
 });
 
+// «16.11» / «16/11» / «16-11» -> {day, month}; пусто -> null; неверное -> undefined
+export function parseBirthday(raw: string): { day: number; month: number } | null | undefined {
+  const t = raw.trim();
+  if (!t) return null;
+  const m = t.match(/^(\d{1,2})\s*[.\/\-]\s*(\d{1,2})(?:\s*[.\/\-]\s*\d{2,4})?$/);
+  if (!m) return undefined;
+  const day = +m[1], month = +m[2];
+  const dim = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (month < 1 || month > 12 || day < 1 || day > dim[month - 1]) return undefined;
+  return { day, month };
+}
+
 export async function handle(i: any) {
   if (i.type === 1) return json({ type: 1 });
   const user = i.member?.user ?? i.user;
   if (!user) return say('Не вижу, кто ты. Попробуй ещё раз на сервере.');
 
   if (i.type === 3 && i.data?.custom_id === 'register') {
-    const { data: reg } = await sb.from('discord_registrations').select('game_nick, real_name').eq('discord_id', user.id).maybeSingle();
+    const { data: reg } = await sb.from('discord_registrations').select('game_nick, real_name, birth_day, birth_month').eq('discord_id', user.id).maybeSingle();
     return json({ type: 9, data: { custom_id: 'register_modal', title: 'Анкета Чундрика', components: [
       input('game_nick', 'Игровой ник в PUBG', true, 32, reg?.game_nick, 'Например: Marusabelle'),
       input('real_name', 'Имя (по желанию)', false, 64, reg?.real_name ?? undefined),
+      input('birthday', 'День рождения ДД.ММ (видят только админы)', false, 5,
+        reg?.birth_day ? `${String(reg.birth_day).padStart(2, '0')}.${String(reg.birth_month).padStart(2, '0')}` : undefined,
+        'Необязательно. Например 16.11 — клан поздравит 🎂'),
     ] } });
   }
 
@@ -34,9 +49,12 @@ export async function handle(i: any) {
     for (const row of i.data.components ?? []) for (const c of row.components ?? []) vals[c.custom_id] = String(c.value ?? '').trim();
     const game_nick = (vals.game_nick ?? '').slice(0, 32);
     const real_name = (vals.real_name ?? '').slice(0, 64) || null;
+    const bd = parseBirthday(vals.birthday ?? '');
+    if (bd === undefined) return say('Не понял день рождения. Впиши день и месяц через точку, например 16.11 (или оставь поле пустым). Нажми кнопку ещё раз.');
     if (!game_nick) return say('Игровой ник пустой. Нажми кнопку ещё раз и впиши ник.');
     const { error } = await sb.from('discord_registrations').upsert({
       discord_id: user.id, game_nick, real_name, discord_username: user.username, registered_at: new Date().toISOString(),
+      ...(bd ? { birth_day: bd.day, birth_month: bd.month } : {}), // пустое поле не стирает уже сохранённое
     });
     if (error) { console.error(error.message); return say('Что-то пошло не так, Чундрик задумался. Попробуй ещё раз через минуту.'); }
     const roleId = await getConfig('role_id');

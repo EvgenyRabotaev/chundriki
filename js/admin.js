@@ -106,11 +106,17 @@ const memberFields = [
   { name: 'clan_role', label: 'Роль', type: 'select', options: ROLES, default: 'чундрик', required: true },
   { name: 'real_name', label: 'Реальное имя' },
   { name: 'joined_at', label: 'Дата вступления', type: 'date', default: today() },
-  { name: 'birthday', label: 'День рождения', type: 'date', hint: 'Необязательно. Хранится приватно, на сайте виден только день и месяц в блоке «Сегодня в клане».' },
+  { name: 'birthday', label: 'День рождения (ДД.ММ)', pattern: '(0?[1-9]|[12]\\d|3[01])\\.(0?[1-9]|1[0-2])', placeholder: '16.11', hint: 'Необязательно, год не нужен. Видно только админам; на сайте в день рождения появляется лишь ник в блоке «Сегодня в клане».' },
 ];
 let members = [];
 let birthdays = new Map();
-async function loadMembers() { members = await db.getMembers(); try { birthdays = new Map((await db.getBirthdays()).map((b) => [b.member_id, b.birthday])); } catch {} renderMembers(); if (typeof renderBadges === 'function') renderBadges(); }
+async function saveBirthday(id, v) {
+  if (!v) return db.setBirthday(id, null, null);
+  const [d, m] = v.split('.').map(Number);
+  if (!d || !m || m > 12 || d > [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]) throw new Error('Неверный день рождения, нужен формат ДД.ММ');
+  return db.setBirthday(id, d, m);
+}
+async function loadMembers() { members = await db.getMembers(); try { birthdays = new Map((await db.getBirthdays()).map((b) => [b.member_id, String(b.birth_day).padStart(2, '0') + '.' + String(b.birth_month).padStart(2, '0')])); } catch {} renderMembers(); if (typeof renderBadges === 'function') renderBadges(); }
 function renderMembers() {
   const q = $('members-search').value.trim().toLowerCase();
   const rows = members.filter((m) => !q || [m.game_nick, m.discord_nick, m.real_name].some((v) => String(v || '').toLowerCase().includes(q)));
@@ -128,7 +134,7 @@ $('members-search').addEventListener('input', renderMembers);
 $('add-member').addEventListener('click', async () => {
   const d = await openForm('Новый участник', memberFields); if (!d) return;
   const { birthday, ...md } = d;
-  await guard(async () => { const m = await db.createMember(md); if (birthday) await db.setBirthday(m.id, birthday); await loadMembers(); }, 'Участник добавлен');
+  await guard(async () => { const m = await db.createMember(md); if (birthday) await saveBirthday(m.id, birthday); await loadMembers(); }, 'Участник добавлен');
 });
 $('members-body').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
@@ -136,7 +142,7 @@ $('members-body').addEventListener('click', async (e) => {
   if (b.dataset.act === 'edit') {
     const d = await openForm('Изменить: ' + m.game_nick, memberFields, { ...m, birthday: birthdays.get(m.id) || '' }); if (!d) return;
     const { birthday, ...md } = d;
-    await guard(async () => { await db.updateMember(m.id, md); if ((birthday || '') !== (birthdays.get(m.id) || '')) await db.setBirthday(m.id, birthday); await loadMembers(); }, 'Сохранено');
+    await guard(async () => { await db.updateMember(m.id, md); if ((birthday || '') !== (birthdays.get(m.id) || '')) await saveBirthday(m.id, birthday); await loadMembers(); }, 'Сохранено');
   } else if (b.dataset.act === 'badges') {
     await editMemberBadges(m);
   } else if (b.dataset.act === 'move') {

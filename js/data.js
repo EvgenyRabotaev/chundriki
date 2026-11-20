@@ -155,8 +155,8 @@ export async function getClanEvents() { return unwrap(await sb.from('clan_events
 export async function createClanEvent(e) { return unwrap(await sb.from('clan_events').insert(clean(e)).select(EVENT_COLS).single()); }
 export async function updateClanEvent(id, e) { return unwrap(await sb.from('clan_events').update(clean(e)).eq('id', id).select(EVENT_COLS).single()); }
 export async function deleteClanEvent(id) { unwrap(await sb.from('clan_events').delete().eq('id', id)); }
-export async function getBirthdays() { return unwrap(await sb.from('member_birthdays').select('member_id, birthday')); }
-export async function setBirthday(memberId, birthday) {
-  if (!birthday) unwrap(await sb.from('member_birthdays').delete().eq('member_id', memberId));
-  else unwrap(await sb.from('member_birthdays').upsert({ member_id: memberId, birthday }));
+export async function getBirthdays() { return unwrap(await sb.from('member_private').select('member_id, birth_day, birth_month')); }
+export async function setBirthday(memberId, day, month) {
+  if (!day) unwrap(await sb.from('member_private').delete().eq('member_id', memberId));
+  else unwrap(await sb.from('member_private').upsert({ member_id: memberId, birth_day: day, birth_month: month }));
 }

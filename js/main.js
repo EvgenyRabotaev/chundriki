@@ -116,6 +116,7 @@ const needMembers = ['roster-list', 'hall-list'].some((id) => document.getElemen
 if (needMembers) getMembers().then((rows) => {
   members = rows;
   document.querySelectorAll('.squad-count').forEach((el) => { el.textContent = rows.length; });
+  { const n = rows.length, a = n % 10, b = n % 100; const w = (a === 1 && b !== 11) ? 'Чундрик' : (a >= 2 && a <= 4 && (b < 12 || b > 14)) ? 'Чундрика' : 'Чундриков'; document.querySelectorAll('.squad-word').forEach((el) => { el.textContent = w; }); }
   renderRoster();
   renderHall();
 }).catch((err) => {

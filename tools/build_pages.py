@@ -6,7 +6,7 @@ import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
 BASE = 'https://chundriki.top/'
-V = '50'
+V = '51'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
        ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'

@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=47';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=48';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
@@ -155,9 +155,9 @@ function renderVideos(videos) {
           ${media}
           <div class="video-body">
             <div class="video-meta">${plate}</div>
-            ${people.length ? `<div class="card-people"><span class="lbl">В кадре:</span>${people.map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div>` : ''}
+            <div class="card-people">${people.length ? `<span class="lbl">В кадре:</span>${people.map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}` : ''}</div>
             <h3>${esc(v.title)}</h3>
-            ${(v.short_desc || v.long_desc) ? `<p class="short" data-short="${esc(v.short_desc || '')}" data-full="${esc(v.long_desc || v.short_desc || '')}">${esc(v.short_desc || v.long_desc)}</p>` : ''}
+  XX
             <div class="video-foot">
               <button type="button" class="more-btn" data-id="${v.id}">Подробнее ▾</button>
             </div>

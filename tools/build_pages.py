@@ -147,7 +147,7 @@ page('roster.html', 'Состав клана — Chundriki', 'Полный со�
 
 # ---------- moments ----------
 page('moments.html', 'Лучшие моменты — Chundriki', 'Лучшие моменты клана Chundriki в PUBG: переворот УАЗика, флешки и панцерфаусты в видео.',
-  '<main>\n    <section class="section" id="videos">\n      ' + head('// килкам', 'Лучшие моменты', 'Нарезки из наших катков.') +
+  '<main>\n    <section class="section" id="videos">\n      ' + head('// килкам', 'Лучшие моменты', 'Нарезки из наших каток.') +
   '\n      <div id="video-list" class="videos"><p class="muted">Загружаем видео…</p></div>\n    </section>\n  </main>', 'moments.html')
 
 # ---------- hall ----------

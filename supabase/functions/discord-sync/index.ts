@@ -75,12 +75,22 @@ async function run() {
   const { data: siteRaw } = await sb.from('members').select('id, game_nick, discord_nick, discord_id, clan_role, real_name, joined_at');
   const site = (siteRaw ?? []) as (SiteMember & Record<string, unknown>)[];
   const stats: Record<string, number> = {};
+  // выгнанные (former_members.leave_type = 'выгнали'), у которых ещё осталась роль: не возвращаем, только отчёт
+  const { data: kickedRaw } = await sb.from('former_members').select('discord_id, game_nick').eq('leave_type', 'выгнали').not('discord_id', 'is', null);
+  const kicked = new Map((kickedRaw ?? []).map((k) => [k.discord_id, k.game_nick]));
+  const kickedWithRole: string[] = [];
   for (const m of holders) {
+    if (kicked.has(m.user.id) && !site.some((x) => x.discord_id === m.user.id)) {
+      kickedWithRole.push(`${kicked.get(m.user.id)} (${m.user.id})`);
+      stats['kicked_with_role'] = (stats['kicked_with_role'] ?? 0) + 1;
+      continue;
+    }
     let r = await linkOrCreate(m.user, m.nick, regs.get(m.user.id) ?? null, site);
     if (r === 'none') r = await returnedOrPing(m, channel?.id ?? null, site);
     stats[r] = (stats[r] ?? 0) + 1;
   }
   out.holders = holders.length; out.site = stats;
+  if (kickedWithRole.length) { out.kicked_but_still_has_role = kickedWithRole; console.log('kicked but still has role:', kickedWithRole.join(', ')); }
 
   // ушедшие / потерявшие роль: только записи с discord_id, и только если список ролей выглядит здраво
   const holderIds = new Set(holders.map((m) => m.user.id));

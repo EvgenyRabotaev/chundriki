@@ -1,4 +1,4 @@
-import * as db from './data.js?v=42';
+import * as db from './data.js?v=43';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtLong, toast, safeUrl } from './util.js?v=33';
 import { newsDetailHtml } from './news-view.js?v=33';
@@ -211,11 +211,10 @@ const videoFields = () => [
   { name: 'url', label: 'Ссылка на видео (YouTube, Shorts, TikTok, VK)', type: 'url', required: true, placeholder: 'https://youtu.be/… или youtube.com/shorts/…',
     onInput: (form) => { form.elements.platform.value = detectPlatform(form.elements.url.value); if (isShortUrl(form.elements.url.value)) form.elements.is_short.value = '1'; } },
   { name: 'platform', label: 'Площадка', type: 'select', options: ['youtube', 'tiktok', 'vk', 'other'], labels: PLATFORM_LABEL, default: 'other', hint: 'Определяется автоматически по ссылке.' },
-  { name: 'tiktok_url', label: 'Ссылка на TikTok (необязательно)', type: 'url', hint: 'Если задана, в окне видео появится кнопка «Смотреть в TikTok».' },
   { name: 'is_short', label: 'Формат', type: 'select', options: ['', '1'], labels: { '': 'Горизонтальное 16:9', '1': 'Вертикальное 9:16 (Shorts)' }, default: '' },
   { name: 'title', label: 'Название', required: true },
-  { name: 'short_desc', label: 'Короткое описание', type: 'textarea', rows: 2, hint: 'Видно на карточке и в окне видео.' },
-  { name: 'long_desc', label: 'Подробное описание', type: 'textarea', rows: 4, hint: 'Необязательно, показывается в окне ниже.' },
+  { name: 'short_desc', label: 'Короткое описание', type: 'textarea', rows: 2, hint: 'Видно на карточке и в шторке.' },
+  { name: 'long_desc', label: 'Подробное описание', type: 'textarea', rows: 4, hint: 'Необязательно, показывается в шторке «Подробнее».' },
   { name: 'members', label: 'Кто на видео', type: 'checks', options: members.map((m) => ({ value: m.id, label: m.game_nick })) },
   { name: 'sort_order', label: 'Порядок (меньше — выше)', type: 'number', default: 0 },
 ];
@@ -224,7 +223,7 @@ async function loadVideos() { videos = await db.getVideos(); renderVideos(); }
 function renderVideos() {
   const nick = (id) => members.find((m) => m.id === id)?.game_nick;
   $('videos-body').innerHTML = videos.map((v) => `<tr>
-    <td>${esc(v.sort_order)}</td><td><b>${esc(v.title)}</b></td><td>${esc(PLATFORM_LABEL[v.platform] || v.platform)}${v.tiktok_url ? ' + TikTok' : ''}</td>
+    <td>${esc(v.sort_order)}</td><td><b>${esc(v.title)}</b></td><td>${esc(PLATFORM_LABEL[v.platform] || v.platform)}</td>
     <td><a href="${esc(v.url)}" target="_blank" rel="noopener">открыть ↗</a></td>
     <td class="muted">${esc((v.video_members || []).map((x) => nick(x.member_id)).filter(Boolean).join(', ') || '—')}</td>
     <td class="actions">

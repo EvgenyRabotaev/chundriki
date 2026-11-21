@@ -42,7 +42,7 @@ export function embedSrc(url) {
   const { platform, id } = parseVideoUrl(url);
   if (!id) return null;
   if (platform === 'youtube') return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
-  if (platform === 'tiktok') return `https://www.tiktok.com/embed/v2/${id}`;
+  if (platform === 'tiktok') return `https://www.tiktok.com/player/v1/${id}?autoplay=1&rel=0`;
   if (platform === 'vk') {
     const [oid, vid] = id.split('_');
     return `https://vk.com/video_ext.php?oid=${oid}&id=${vid}&hd=2&autoplay=1`;

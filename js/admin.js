@@ -1,4 +1,4 @@
-import * as db from './data.js?v=41';
+import * as db from './data.js?v=42';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtLong, toast, safeUrl } from './util.js?v=33';
 import { newsDetailHtml } from './news-view.js?v=33';
@@ -51,7 +51,7 @@ db.onAuthChange((session) => route(session));
 db.getSession().then(route).catch(() => show('login'));
 
 // ---------- Вкладки ----------
-const TABS = ['members', 'former', 'videos', 'clips', 'badges', 'news', 'events'];
+const TABS = ['members', 'former', 'videos', 'badges', 'news', 'events'];
 function openTab(name) {
   if (!TABS.includes(name)) name = 'members';
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x.dataset.tab === name));
@@ -205,107 +205,54 @@ $('former-body').addEventListener('click', async (e) => {
   }
 });
 
-// ---------- Видео ----------
-const videoFields = [
-  { name: 'url', label: 'Ссылка на видео', type: 'url', required: true, placeholder: 'https://youtu.be/… или https://www.tiktok.com/@…/video/…',
-    onInput: (form) => { form.elements.platform.value = detectPlatform(form.elements.url.value); } },
+// ---------- Моменты (видео) ----------
+const isShortUrl = (u) => /youtube\.com\/shorts\//.test(String(u || ''));
+const videoFields = () => [
+  { name: 'url', label: 'Ссылка на видео (YouTube, Shorts, TikTok, VK)', type: 'url', required: true, placeholder: 'https://youtu.be/… или youtube.com/shorts/…',
+    onInput: (form) => { form.elements.platform.value = detectPlatform(form.elements.url.value); if (isShortUrl(form.elements.url.value)) form.elements.is_short.value = '1'; } },
   { name: 'platform', label: 'Площадка', type: 'select', options: ['youtube', 'tiktok', 'vk', 'other'], labels: PLATFORM_LABEL, default: 'other', hint: 'Определяется автоматически по ссылке.' },
+  { name: 'tiktok_url', label: 'Ссылка на TikTok (необязательно)', type: 'url', hint: 'Если задана, в окне видео появится кнопка «Смотреть в TikTok».' },
+  { name: 'is_short', label: 'Формат', type: 'select', options: ['', '1'], labels: { '': 'Горизонтальное 16:9', '1': 'Вертикальное 9:16 (Shorts)' }, default: '' },
   { name: 'title', label: 'Название', required: true },
-  { name: 'short_desc', label: 'Короткое описание', type: 'textarea', rows: 2, hint: 'Видно сразу под видео.' },
-  { name: 'long_desc', label: 'Подробное описание', type: 'textarea', rows: 5, hint: 'Раскрывается по кнопке «Подробнее».' },
+  { name: 'short_desc', label: 'Короткое описание', type: 'textarea', rows: 2, hint: 'Видно на карточке и в окне видео.' },
+  { name: 'long_desc', label: 'Подробное описание', type: 'textarea', rows: 4, hint: 'Необязательно, показывается в окне ниже.' },
+  { name: 'members', label: 'Кто на видео', type: 'checks', options: members.map((m) => ({ value: m.id, label: m.game_nick })) },
   { name: 'sort_order', label: 'Порядок (меньше — выше)', type: 'number', default: 0 },
 ];
 let videos = [];
 async function loadVideos() { videos = await db.getVideos(); renderVideos(); }
 function renderVideos() {
+  const nick = (id) => members.find((m) => m.id === id)?.game_nick;
   $('videos-body').innerHTML = videos.map((v) => `<tr>
-    <td>${esc(v.sort_order)}</td><td><b>${esc(v.title)}</b></td><td>${esc(PLATFORM_LABEL[v.platform] || v.platform)}</td>
-    <td><a href="${esc(v.url)}" target="_blank" rel="noopener">открыть ↗</a></td><td class="muted">${esc(v.short_desc || '—')}</td>
+    <td>${esc(v.sort_order)}</td><td><b>${esc(v.title)}</b></td><td>${esc(PLATFORM_LABEL[v.platform] || v.platform)}${v.tiktok_url ? ' + TikTok' : ''}</td>
+    <td><a href="${esc(v.url)}" target="_blank" rel="noopener">открыть ↗</a></td>
+    <td class="muted">${esc((v.video_members || []).map((x) => nick(x.member_id)).filter(Boolean).join(', ') || '—')}</td>
     <td class="actions">
       <button class="btn btn-olive btn-sm" data-act="edit" data-id="${v.id}">Изменить</button>
       <button class="btn btn-danger btn-sm" data-act="del" data-id="${v.id}">Удалить</button>
     </td></tr>`).join('') || '<tr><td colspan="6" class="muted">Видео пока нет</td></tr>';
 }
 function normVideo(d) {
+  const ids = (d.members || []).map(Number); delete d.members;
   d.sort_order = parseInt(d.sort_order, 10) || 0;
   if (!d.platform || d.platform === 'other') d.platform = detectPlatform(d.url);
-  return d;
+  d.is_short = d.is_short === '1' || isShortUrl(d.url);
+  return { row: d, ids };
 }
 $('add-video').addEventListener('click', async () => {
   const next = videos.length ? Math.max(...videos.map((v) => v.sort_order || 0)) + 10 : 10;
-  const d = await openForm('Новое видео', videoFields, { sort_order: next }); if (!d) return;
-  await guard(async () => { await db.createVideo(normVideo(d)); await loadVideos(); }, 'Видео добавлено');
+  const d = await openForm('Новое видео', videoFields(), { sort_order: next }); if (!d) return;
+  await guard(async () => { const p = normVideo(d); await db.createVideo(p.row, p.ids); await loadVideos(); }, 'Видео добавлено');
 });
 $('videos-body').addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
   const v = videos.find((x) => x.id == b.dataset.id);
   if (b.dataset.act === 'edit') {
-    const d = await openForm('Изменить видео', videoFields, v); if (!d) return;
-    await guard(async () => { await db.updateVideo(v.id, normVideo(d)); await loadVideos(); }, 'Сохранено');
+    const d = await openForm('Изменить видео', videoFields(), { ...v, is_short: v.is_short ? '1' : '', members: (v.video_members || []).map((x) => x.member_id) }); if (!d) return;
+    await guard(async () => { const p = normVideo(d); await db.updateVideo(v.id, p.row, p.ids); await loadVideos(); }, 'Сохранено');
   } else if (b.dataset.act === 'del') {
     if (!confirm(`Удалить видео «${v.title}»?`)) return;
     await guard(async () => { await db.deleteVideo(v.id); await loadVideos(); }, 'Удалено');
-  }
-});
-
-// ---------- Видео клана (clan_videos) ----------
-function parseYt(raw) {
-  const t = String(raw || '').trim(); if (!t) return { id: null, short: false };
-  if (/^[\w-]{11}$/.test(t)) return { id: t, short: false };
-  let u; try { u = new URL(t); } catch { return { id: null, short: false }; }
-  const host = u.hostname.replace(/^www\.|^m\./, '');
-  if (host === 'youtu.be') return { id: u.pathname.slice(1, 12) || null, short: false };
-  if (u.searchParams.get('v')) return { id: u.searchParams.get('v').slice(0, 11), short: false };
-  const m = u.pathname.match(/\/(shorts|embed|live|v)\/([\w-]{11})/);
-  return m ? { id: m[2], short: m[1] === 'shorts' } : { id: null, short: false };
-}
-let clips = [];
-const clipFields = () => [
-  { name: 'youtube_url', label: 'Ссылка на YouTube', placeholder: 'https://youtu.be/… или youtube.com/shorts/…', hint: 'Необязательно, если ролик только в TikTok. Шортсы определяются сами.',
-    onInput: (form) => { const r = parseYt(form.elements.youtube_url.value); form.elements.is_short.checked = r.short; } },
-  { name: 'tiktok_url', label: 'Ссылка на TikTok', type: 'url', placeholder: 'https://www.tiktok.com/@…/video/…', hint: 'Необязательно. Появится кнопка «Смотреть в TikTok».' },
-  { name: 'title', label: 'Название', required: true },
-  { name: 'description', label: 'Описание (в клановом стиле)', type: 'textarea', rows: 4 },
-  { name: 'members', label: 'Кто на видео', type: 'checks', options: members.map((m) => ({ value: m.id, label: m.game_nick })) },
-  { name: 'published_at', label: 'Дата', type: 'date', default: today() },
-  { name: 'is_short', label: 'Вертикальное (Shorts)', type: 'checks', options: [{ value: '1', label: 'да, формат 9:16' }] },
-  { name: 'sort_order', label: 'Порядок (меньше — выше)', type: 'number', default: 0 },
-];
-async function loadClips() { clips = await db.getClips(); renderClips(); }
-function renderClips() {
-  const nick = (id) => members.find((m) => m.id === id)?.game_nick;
-  $('clips-body').innerHTML = clips.map((v) => `<tr>
-    <td>${esc(v.sort_order)}</td><td><b>${esc(v.title)}</b></td>
-    <td>${v.youtube_id ? `<a href="https://youtu.be/${esc(v.youtube_id)}" target="_blank" rel="noopener">YouTube${v.is_short ? ' Shorts' : ''} ↗</a>` : ''}${v.tiktok_url ? ` <a href="${esc(v.tiktok_url)}" target="_blank" rel="noopener">TikTok ↗</a>` : ''}</td>
-    <td class="muted">${esc((v.clan_video_members || []).map((x) => nick(x.member_id)).filter(Boolean).join(', ') || '—')}</td>
-    <td class="actions">
-      <button class="btn btn-olive btn-sm" data-act="edit" data-id="${v.id}">Изменить</button>
-      <button class="btn btn-danger btn-sm" data-act="del" data-id="${v.id}">Удалить</button>
-    </td></tr>`).join('') || '<tr><td colspan="5" class="muted">Видео пока нет</td></tr>';
-}
-function clipPayload(d) {
-  const yt = parseYt(d.youtube_url);
-  if (d.youtube_url && !yt.id) throw new Error('Не удалось разобрать ссылку YouTube');
-  if (!yt.id && !d.tiktok_url) throw new Error('Нужна ссылка на YouTube или TikTok');
-  return {
-    row: { youtube_id: yt.id, tiktok_url: d.tiktok_url, title: d.title, description: d.description, published_at: d.published_at || today(),
-      is_short: !!(yt.id && ((d.is_short || []).length || yt.short)), sort_order: parseInt(d.sort_order, 10) || 0 },
-    ids: (d.members || []).map(Number),
-  };
-}
-$('add-clip').addEventListener('click', async () => {
-  const d = await openForm('Новое видео', clipFields(), { sort_order: clips.length ? Math.min(...clips.map((v) => v.sort_order || 0)) - 1 : 0 }); if (!d) return;
-  await guard(async () => { const p = clipPayload(d); await db.saveClip(null, p.row, p.ids); await loadClips(); }, 'Видео добавлено');
-});
-$('clips-body').addEventListener('click', async (e) => {
-  const b = e.target.closest('button[data-act]'); if (!b) return;
-  const v = clips.find((x) => x.id == b.dataset.id);
-  if (b.dataset.act === 'edit') {
-    const d = await openForm('Изменить видео', clipFields(), { ...v, youtube_url: v.youtube_id ? 'https://youtu.be/' + v.youtube_id : '', members: (v.clan_video_members || []).map((x) => x.member_id), is_short: v.is_short ? ['1'] : [] }); if (!d) return;
-    await guard(async () => { const p = clipPayload(d); await db.saveClip(v.id, p.row, p.ids); await loadClips(); }, 'Сохранено');
-  } else if (b.dataset.act === 'del') {
-    if (!confirm(`Удалить видео «${v.title}»?`)) return;
-    await guard(async () => { await db.deleteClip(v.id); await loadClips(); }, 'Удалено');
   }
 });
 
@@ -593,5 +540,5 @@ async function editMemberBadges(m) {
 }
 
 async function loadAll() {
-  await Promise.all([loadEvents(), loadBadges(), loadNews(), loadMembers(), loadFormer(), loadVideos(), loadClips()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
+  await Promise.all([loadEvents(), loadBadges(), loadNews(), loadMembers(), loadFormer(), loadVideos()].map((p) => p.catch((e) => toast('Ошибка загрузки: ' + e.message, true))));
 }

@@ -1,8 +1,7 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=41';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=42';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
-import './clips.js?v=41';
 import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=33';
 
 // ---------- Состав ----------
@@ -125,55 +124,86 @@ if (needMembers) getMembers().then((rows) => {
   const h = document.getElementById('hall-list'); if (h) h.innerHTML = '<p class="error-text">Не удалось загрузить данные.</p>';
 });
 
-// ---------- Видео ----------
+// ---------- Видео (Моменты) ----------
 const videoEl = document.getElementById('video-list') || document.createElement('div');
+let videoRows = [];
+let videoMembers = new Map();
 
 function renderVideos(videos) {
+  videoRows = videos;
   if (!videos.length) { videoEl.innerHTML = '<p class="muted">Скоро здесь появятся наши лучшие моменты.</p>'; return; }
   videoEl.innerHTML = videos.map((v) => {
     const { platform } = parseVideoUrl(v.url);
-    const src = embedSrc(v.url);
     const thumb = thumbnail(v.url);
-    const isVertical = platform === 'tiktok';
-    const media = src
-      ? `<button class="player ${isVertical ? 'vertical' : ''}" data-src="${esc(src)}" aria-label="Смотреть: ${esc(v.title)}">
-           ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : `<span class="player-ph">${esc(PLATFORM_LABEL[platform])}</span>`}
-           <span class="play">▶</span>
-         </button>`
-      : `<a class="player link-only" href="${esc(v.url)}" target="_blank" rel="noopener"><span class="player-ph">Открыть видео ↗</span></a>`;
     return `
       <article class="video">
-        ${media}
+        <div class="player ${v.is_short || platform === 'tiktok' ? 'vertical' : ''} card-thumb">
+          ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : `<span class="player-ph">${esc(PLATFORM_LABEL[platform])}</span>`}
+        </div>
         <div class="video-body">
-          <div class="video-meta"><span class="platform p-${platform}">${esc(PLATFORM_LABEL[platform])}</span>
-            <a class="ext" href="${esc(v.url)}" target="_blank" rel="noopener">оригинал ↗</a></div>
+          <div class="video-meta"><span class="platform p-${platform}">${esc(PLATFORM_LABEL[platform])}</span></div>
           <h3>${esc(v.title)}</h3>
           ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
-          ${v.long_desc ? `<details class="more"><summary>Подробнее</summary><p>${esc(v.long_desc)}</p></details>` : ''}
+          <button type="button" class="btn btn-pink btn-sm video-more" data-id="${v.id}">Подробнее</button>
         </div>
       </article>`;
   }).join('');
 }
 
+function videoDialog() {
+  let d = document.getElementById('video-dlg');
+  if (!d) {
+    d = document.createElement('dialog'); d.id = 'video-dlg'; d.className = 'video-dlg';
+    d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+    d.addEventListener('close', () => { d.innerHTML = ''; });
+    document.body.appendChild(d);
+  }
+  return d;
+}
+
+function openVideo(v) {
+  const { platform } = parseVideoUrl(v.url);
+  const src = embedSrc(v.url);
+  const vertical = v.is_short || platform === 'tiktok';
+  const tt = v.tiktok_url ? safeUrl(v.tiktok_url) : (platform === 'tiktok' ? safeUrl(v.url) : null);
+  const ytLink = platform === 'youtube' ? safeUrl(v.url) : null;
+  const other = (platform !== 'youtube' && platform !== 'tiktok') ? safeUrl(v.url) : null;
+  const people = (v.video_members || []).map((x) => videoMembers.get(x.member_id)).filter(Boolean);
+  const d = videoDialog();
+  d.innerHTML = `<div class="vd-in">
+    <button type="button" class="vd-close" data-close aria-label="Закрыть">✕</button>
+    ${src ? `<div class="vd-player ${vertical ? 'vertical' : ''}"><iframe src="${esc(src)}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
+    <div class="vd-btns">
+      ${ytLink ? `<a class="btn btn-yt" href="${esc(ytLink)}" target="_blank" rel="noopener">▶ Открыть на YouTube</a>` : ''}
+      ${tt ? `<a class="btn btn-tt" href="${esc(tt)}" target="_blank" rel="noopener">♪ Смотреть в TikTok</a>` : ''}
+      ${other ? `<a class="btn btn-ghost" href="${esc(other)}" target="_blank" rel="noopener">Открыть видео ↗</a>` : ''}
+    </div>
+    ${people.length ? `<div class="vd-people"><h4>В кадре</h4><div class="clip-members">${people.map((m) => `<a class="chip clip-chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div></div>` : ''}
+    <h3 class="vd-title">${esc(v.title)}</h3>
+    ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
+    ${v.long_desc ? `<p class="vd-long muted">${esc(v.long_desc)}</p>` : ''}
+  </div>`;
+  d.showModal();
+}
+
 videoEl.addEventListener('click', (e) => {
-  const p = e.target.closest('button.player');
-  if (!p) return;
-  const iframe = document.createElement('iframe');
-  iframe.src = p.dataset.src;
-  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
-  iframe.allowFullscreen = true;
-  iframe.loading = 'lazy';
-  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-  const wrap = document.createElement('div');
-  wrap.className = 'player playing' + (p.classList.contains('vertical') ? ' vertical' : '');
-  wrap.appendChild(iframe);
-  p.replaceWith(wrap);
+  const b = e.target.closest('.video-more, .card-thumb');
+  const card = e.target.closest('.video');
+  if (!b || !card) return;
+  const id = b.dataset.id || card.querySelector('.video-more')?.dataset.id;
+  const v = videoRows.find((x) => x.id == id);
+  if (v) openVideo(v);
 });
 
-if (document.getElementById('video-list')) getVideos().then((v) => renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v)).catch((err) => {
-  console.error(err);
-  videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';
-});
+if (document.getElementById('video-list')) {
+  Promise.all([getVideos(), getMembers().catch(() => [])]).then(([v, ms]) => {
+    videoMembers = new Map(ms.map((m) => [m.id, m]));
+    renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v);
+  }).catch((err) => {
+    console.error(err);
+    videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';
+  });
+}
 
 // ---------- Новости ----------
 const newsEl = document.getElementById('news-list');

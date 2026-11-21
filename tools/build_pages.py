@@ -6,9 +6,9 @@ import pathlib, html
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FR = ROOT / 'tools' / 'fragments'
 BASE = 'https://chundriki.top/'
-V = '41'
+V = '42'
 NAV = [('index.html', 'Главная'), ('news.html', 'Новости'), ('roster.html', 'Состав'),
-       ('moments.html', 'Моменты'), ('video.html', 'Видео'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
+       ('moments.html', 'Моменты'), ('hall.html', 'Зал славы'), ('about.html', 'О клане')]
 OG_IMG = BASE + 'assets/hero-bg-1280.webp'
 
 def frag(n): return (FR / n).read_text(encoding='utf-8')
@@ -144,11 +144,6 @@ page('roster.html', 'Состав клана — Chundriki', 'Полный со�
       <div id="roster-list" class="roster"><p class="muted">Загружаем состав…</p></div>
     </section>
   </main>''', 'roster.html')
-
-# ---------- video ----------
-page('video.html', 'Видео — Chundriki', 'Смешные и интересные видео клана Chundriki в PUBG: кто в кадре и что там вообще происходит.',
-  '<main>\n    <section class="section" id="clips">\n      ' + head('// кинозал', 'Видео', 'Смешное и интересное из наших катков. Если плеер не грузится (привет, блокировки) — жми кнопку под роликом.') +
-  '\n      <div id="clip-list" class="clips"><p class="muted">Загружаем видео…</p></div>\n    </section>\n  </main>', 'video.html')
 
 # ---------- moments ----------
 page('moments.html', 'Лучшие моменты — Chundriki', 'Лучшие моменты клана Chundriki в PUBG: переворот УАЗика, флешки и панцерфаусты в видео.',

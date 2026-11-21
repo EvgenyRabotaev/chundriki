@@ -9,7 +9,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 const MEMBER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, joined_at, real_name, sort_order';
 const FORMER_COLS = 'id, game_nick, discord_nick, discord_id, clan_role, real_name, joined_at, left_at, leave_type, reason';
-const VIDEO_COLS = 'id, title, url, platform, short_desc, long_desc, sort_order, created_at';
+const VIDEO_COLS = 'id, title, url, platform, short_desc, long_desc, sort_order, created_at, tiktok_url, is_short, video_members(member_id)';
 
 const ROLE_ORDER = { 'глава': 0, 'руководитель': 1, 'чундрик': 2 };
 
@@ -51,26 +51,6 @@ export async function getVideos() {
   return unwrap(await sb.from('videos').select(VIDEO_COLS)
     .order('sort_order', { ascending: true }).order('created_at', { ascending: false }));
 }
-
-// ---------- Раздел «Видео» (clan_videos) ----------
-const CLIP_COLS = 'id, youtube_id, tiktok_url, is_short, title, description, published_at, sort_order, created_at, clan_video_members(member_id)';
-export async function getClips() {
-  return unwrap(await sb.from('clan_videos').select(CLIP_COLS)
-    .order('sort_order', { ascending: true }).order('published_at', { ascending: false }).order('id', { ascending: false }));
-}
-async function setClipMembers(id, ids) {
-  unwrap(await sb.from('clan_video_members').delete().eq('video_id', id));
-  if (ids.length) unwrap(await sb.from('clan_video_members').insert(ids.map((m) => ({ video_id: id, member_id: m }))));
-}
-export async function saveClip(id, v, memberIds) {
-  const row = clean(v);
-  const saved = id
-    ? unwrap(await sb.from('clan_videos').update(row).eq('id', id).select('id').single())
-    : unwrap(await sb.from('clan_videos').insert(row).select('id').single());
-  await setClipMembers(saved.id, memberIds);
-  return saved;
-}
-export async function deleteClip(id) { unwrap(await sb.from('clan_videos').delete().eq('id', id)); }
 
 // ---------- Авторизация ----------
 export async function sendMagicLink(email, redirectTo) {
@@ -123,8 +103,18 @@ export async function updateFormer(id, m) { return unwrap(await sb.from('former_
 export async function deleteFormer(id) { unwrap(await sb.from('former_members').delete().eq('id', id)); }
 
 // ---------- Админка: видео ----------
-export async function createVideo(v) { return unwrap(await sb.from('videos').insert(clean(v)).select(VIDEO_COLS).single()); }
-export async function updateVideo(id, v) { return unwrap(await sb.from('videos').update(clean(v)).eq('id', id).select(VIDEO_COLS).single()); }
+async function setVideoMembers(id, ids) {
+  unwrap(await sb.from('video_members').delete().eq('video_id', id));
+  if (ids.length) unwrap(await sb.from('video_members').insert(ids.map((m) => ({ video_id: id, member_id: m }))));
+}
+export async function createVideo(v, memberIds = []) {
+  const row = unwrap(await sb.from('videos').insert(clean(v)).select('id').single());
+  await setVideoMembers(row.id, memberIds); return row;
+}
+export async function updateVideo(id, v, memberIds = []) {
+  unwrap(await sb.from('videos').update(clean(v)).eq('id', id));
+  await setVideoMembers(id, memberIds);
+}
 export async function deleteVideo(id) { unwrap(await sb.from('videos').delete().eq('id', id)); }
 
 // ---------- Админка: значки ----------

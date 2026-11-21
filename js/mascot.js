@@ -64,23 +64,44 @@ async function load() {
 }
 
 const fill = (t) => {
-  const days = profile?.joined_at ? Math.max(0, Math.floor((Date.now() - new Date(profile.joined_at)) / 864e5)) : null;
-  return t.replace(/\{nick\}/g, profile?.nick || 'боец').replace(/\{days\}/g, days == null ? 'давно' : `${days} ${plural(days, 'день', 'дня', 'дней')}`);
+  const d = profile?.joined_at ? Math.max(0, Math.floor((Date.now() - new Date(profile.joined_at)) / 864e5)) : null;
+  return t.replace(/\{nick\}/g, profile?.nick || 'боец').replace(/\{days\}/g, d == null ? 'давно' : `${d} ${plural(d, 'день', 'дня', 'дней')}`);
 };
+// Последовательность реплик хранится в sessionStorage, чтобы не сбрасываться при переходе между страницами.
+// g — приветствие уже было; k — сколько реплик после приветствия; bp — позиция «медальной» реплики в текущем блоке из 5;
+// bo — смещение для ротации медальных реплик; last — последняя реплика (чтобы не повторять подряд).
+const SS = 'chundriki.mchat.seq';
+const seq = (() => { try { return JSON.parse(sessionStorage.getItem(SS)) || {}; } catch { return {}; } })();
+const saveSeq = () => { try { sessionStorage.setItem(SS, JSON.stringify(seq)); } catch {} };
 const used = new Set();
-function nextLine() {
-  const cand = [];
-  if (profile) { // шутки по медалькам — ТОЛЬКО вошедшему участнику, у которого есть эта медалька
-    for (const s of profile.badges || []) for (const t of pool.badge[s] || []) cand.push(t, t);
-    for (const t of pool.member) cand.push(t);
-  }
-  for (const t of pool.page[page] || []) cand.push(t, t);
-  for (const t of pool.general) cand.push(t);
-  let fresh = cand.filter((t) => !used.has(t));
-  if (!fresh.length) { used.clear(); fresh = cand; }
-  const t = pick(fresh); used.add(t); return fill(t);
+const days = () => profile?.joined_at ? Math.max(0, Math.floor((Date.now() - new Date(profile.joined_at)) / 864e5)) : null;
+function greeting() { // всегда с игровым ником; без даты вступления — без части про дни
+  let t = pool.member[0] || 'Привет, {nick}! Ты в клане уже {days}. Время летит, лаги остаются.';
+  if (days() == null) t = t.replace(/\s*Ты в клане уже \{days\}\.?/, '');
+  return fill(t);
 }
-const greet = () => profile ? fill('Привет, {nick}! Ты в клане уже {days}.') : 'Привет! Я Чундрик. Кликни по мне — расскажу прикол.';
+function badgeLines() { const out = []; for (const sl of profile?.badges || []) for (const t of pool.badge[sl] || []) out.push(t); return out; }
+function nextLine() {
+  if (profile && !seq.g) { seq.g = 1; saveSeq(); return greeting(); }
+  const k = seq.k || 0, pos = k % 5;
+  if (pos === 0) seq.bp = Math.floor(Math.random() * 5);
+  const bl = badgeLines();
+  let t;
+  if (bl.length && pos === seq.bp) { // в каждом блоке из 5 реплик ровно одна про медальки участника, по кругу
+    if (seq.bo == null) seq.bo = Math.floor(Math.random() * bl.length);
+    t = bl[seq.bo % bl.length]; seq.bo++;
+    if (t === seq.last && bl.length > 1) { t = bl[seq.bo % bl.length]; seq.bo++; }
+  } else {
+    const cand = [];
+    for (const x of pool.page[page] || []) cand.push(x, x);
+    for (const x of pool.general) cand.push(x);
+    let fresh = cand.filter((x) => !used.has(x) && x !== seq.last);
+    if (!fresh.length) { used.clear(); fresh = cand.filter((x) => x !== seq.last); }
+    t = pick(fresh.length ? fresh : cand); used.add(t);
+  }
+  seq.k = k + 1; seq.last = t; saveSeq();
+  return fill(t);
+}
 
 function build() {
   const root = document.createElement('div');
@@ -93,7 +114,7 @@ function build() {
   peek.innerHTML = IMG;
   document.body.append(root, peek);
   const bubble = root.querySelector('.mchat-bubble'), ghost = bubble.querySelector('.ghost'), typed = bubble.querySelector('.typed');
-  let timer = null, run = 0, count = 0, greeted = false, hovered = false;
+  let timer = null, run = 0, count = 0, hovered = false;
   root.addEventListener('mouseenter', () => { hovered = true; }); root.addEventListener('mouseleave', () => { hovered = false; });
   bubble.addEventListener('click', (e) => { if (e.target.closest('a')) return; run++; bubble.classList.remove('on'); });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -112,10 +133,10 @@ function build() {
   function schedule(ms) { clearTimeout(timer); if (!st.hidden) timer = setTimeout(auto, ms); }
   async function auto() {
     if (st.hidden || document.hidden || count >= MAX_LINES) return count >= MAX_LINES ? undefined : schedule(GAP_MS);
-    count++; const t = greeted ? nextLine() : (greeted = true, greet());
+    count++; const t = nextLine();
     schedule(GAP_MS); await speak(t); // отсчёт 60 с — от начала реплики
   }
-  root.querySelector('.mchat-fig').addEventListener('click', async () => { clearTimeout(timer); count++; greeted = true; await speak(nextLine()); schedule(GAP_MS); });
+  root.querySelector('.mchat-fig').addEventListener('click', async () => { clearTimeout(timer); count++; await speak(nextLine()); schedule(GAP_MS); });
   root.querySelector('.mchat-x').addEventListener('click', () => { st.hidden = true; save(); run++; bubble.classList.remove('on'); clearTimeout(timer); applyHidden(); });
   peek.addEventListener('click', async () => { st.hidden = false; save(); applyHidden(); clearTimeout(timer); await speak('Я вернулся! ' + nextLine()); schedule(GAP_MS); });
   let pressT; // долгое нажатие на мобильном тоже прячет

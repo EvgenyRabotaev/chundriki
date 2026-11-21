@@ -52,6 +52,26 @@ export async function getVideos() {
     .order('sort_order', { ascending: true }).order('created_at', { ascending: false }));
 }
 
+// ---------- Раздел «Видео» (clan_videos) ----------
+const CLIP_COLS = 'id, youtube_id, tiktok_url, is_short, title, description, published_at, sort_order, created_at, clan_video_members(member_id)';
+export async function getClips() {
+  return unwrap(await sb.from('clan_videos').select(CLIP_COLS)
+    .order('sort_order', { ascending: true }).order('published_at', { ascending: false }).order('id', { ascending: false }));
+}
+async function setClipMembers(id, ids) {
+  unwrap(await sb.from('clan_video_members').delete().eq('video_id', id));
+  if (ids.length) unwrap(await sb.from('clan_video_members').insert(ids.map((m) => ({ video_id: id, member_id: m }))));
+}
+export async function saveClip(id, v, memberIds) {
+  const row = clean(v);
+  const saved = id
+    ? unwrap(await sb.from('clan_videos').update(row).eq('id', id).select('id').single())
+    : unwrap(await sb.from('clan_videos').insert(row).select('id').single());
+  await setClipMembers(saved.id, memberIds);
+  return saved;
+}
+export async function deleteClip(id) { unwrap(await sb.from('clan_videos').delete().eq('id', id)); }
+
 // ---------- Авторизация ----------
 export async function sendMagicLink(email, redirectTo) {
   unwrap(await sb.auth.signInWithOtp({

@@ -1,7 +1,8 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=33';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=41';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
+import './clips.js?v=41';
 import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=33';
 
 // ---------- Состав ----------
@@ -91,6 +92,8 @@ function renderRoster() {
       <div class="member-row"><span class="lbl">В клане с</span><span class="val">${fmtDate(m.joined_at)}</span></div>
       ${badgesRow(m)}
     </article>`).join('') + toggle;
+  const h = location.hash.match(/^#m(\d+)$/);
+  if (h && !teaser) { const c = listEl.querySelector(`.member[data-id="${h[1]}"]`); if (c) { c.classList.add('hl'); c.scrollIntoView({ block: 'center' }); } }
 }
 
 listEl.addEventListener('click', async (e) => {

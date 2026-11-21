@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=127">
+  <link rel="stylesheet" href="css/style.css?v=141">
 </head>
 <body>
   <header class="topbar">
@@ -56,7 +56,8 @@
       <div class="tabs" role="tablist">
         <button class="tab active" data-tab="members">Состав</button>
         <button class="tab" data-tab="former">Ушедшие</button>
-        <button class="tab" data-tab="videos">Видео</button>
+        <button class="tab" data-tab="videos">Моменты</button>
+        <button class="tab" data-tab="clips">Видео</button>
         <button class="tab" data-tab="badges">Значки</button>
         <button class="tab" data-tab="events">События</button>
         <button class="tab" data-tab="news">Новости</button>
@@ -92,6 +93,16 @@
         <div class="table-wrap"><table>
           <thead><tr><th>Порядок</th><th>Название</th><th>Площадка</th><th>Ссылка</th><th>Кратко</th><th></th></tr></thead>
           <tbody id="videos-body"></tbody>
+        </table></div>
+      </section>
+      <section id="tab-clips" hidden>
+        <div class="toolbar">
+          <button class="btn btn-pink btn-sm" id="add-clip">+ Добавить видео</button>
+          <span class="muted">Раздел «Видео»: ссылка YouTube и/или TikTok, описание и участники.</span>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Порядок</th><th>Название</th><th>Ссылки</th><th>Участники</th><th></th></tr></thead>
+          <tbody id="clips-body"></tbody>
         </table></div>
       </section>
       <section id="tab-news" hidden>
@@ -136,6 +147,6 @@
     <div id="preview-body" class="preview-body"></div>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="js/admin.js?v=5"></script>
+  <script type="module" src="js/admin.js?v=6"></script>
 </body>
 </html>

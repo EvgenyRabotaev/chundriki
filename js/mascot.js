@@ -1,5 +1,5 @@
 // Маскот-болтун: сидит в правом нижнем углу, реплики печатает в пузыре слева над собой. Шутки берёт из таблицы mascot_lines, а если её нет — из запасного пула.
-import { getMascotLines, getMascotProfile, getSession } from './data.js?v=33';
+import { getMascotLines, getMascotProfile, getSession } from './data.js?v=41';
 import { FALLBACK } from './mascot-lines.js';
 
 const LS = 'chundriki.mchat';

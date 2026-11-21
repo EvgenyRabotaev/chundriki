@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=50';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=52';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
@@ -178,11 +178,20 @@ function fitMoreButtons() {
     btn.hidden = !(open || longer || p.scrollHeight > p.clientHeight + 1);
   });
 }
+function lockHeights() { // соседи не растягиваются вслед за раскрытой карточкой
+  videoEl.querySelectorAll('.video:not(.open)').forEach((c) => { c.style.height = c.offsetHeight + 'px'; });
+}
+function unlockHeights() { videoEl.querySelectorAll('.video').forEach((c) => { c.style.height = ''; }); }
 function toggleVideo(card) {
+  const wasOpen = card.classList.contains('open');
+  if (!wasOpen && !videoEl.querySelector('.video.open')) lockHeights();
+  if (!wasOpen) card.style.height = '';
   const p = card.querySelector('.short'), btn = card.querySelector('.more-btn');
   const open = card.classList.toggle('open');
   if (p) p.textContent = open ? p.dataset.full : (p.dataset.short || p.dataset.full);
   btn.textContent = open ? 'Свернуть ▴' : 'Подробнее ▾';
+  if (!open && !videoEl.querySelector('.video.open')) unlockHeights();
+  else if (!open) card.style.height = card.offsetHeight + 'px';
 }
 
 videoEl.addEventListener('click', async (e) => {
@@ -209,7 +218,7 @@ if (document.getElementById('video-list')) {
     renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v);
     fitMoreButtons();
     if (document.fonts?.ready) document.fonts.ready.then(fitMoreButtons);
-    window.addEventListener('resize', fitMoreButtons);
+    window.addEventListener('resize', () => { if (!videoEl.querySelector('.video.open')) fitMoreButtons(); });
   }).catch((err) => {
     console.error(err);
     videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';

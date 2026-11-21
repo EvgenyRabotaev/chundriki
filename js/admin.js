@@ -126,7 +126,7 @@ function renderMembers() {
     <td class="actions">
       <button class="btn btn-olive btn-sm" data-act="edit" data-id="${m.id}">Изменить</button>
       <button class="btn btn-ghost btn-sm" data-act="badges" data-id="${m.id}">Значки${m.badges?.length ? ' (' + m.badges.length + ')' : ''}</button>
-      <button class="btn btn-ghost btn-sm" data-act="move" data-id="${m.id}">В ушедшие</button>
+      <button class="btn btn-ghost btn-sm" data-act="move" data-id="${m.id}">${m.discord_id ? 'В ушедшие' : 'Выгнать'}</button>
       <button class="btn btn-danger btn-sm" data-act="del" data-id="${m.id}">Удалить</button>
     </td></tr>`).join('') || '<tr><td colspan="7" class="muted">Пусто</td></tr>';
 }
@@ -145,6 +145,9 @@ $('members-body').addEventListener('click', async (e) => {
     await guard(async () => { await db.updateMember(m.id, md); if ((birthday || '') !== (birthdays.get(m.id) || '')) await saveBirthday(m.id, birthday); await loadMembers(); }, 'Сохранено');
   } else if (b.dataset.act === 'badges') {
     await editMemberBadges(m);
+  } else if (b.dataset.act === 'move' && !m.discord_id) {
+    if (!confirm(`Удалить ${m.game_nick} навсегда? На сервере его не было, в ушедшие не попадёт.`)) return;
+    await guard(async () => { await db.moveToFormer(m.id, 'исключён', null, today()); await loadMembers(); }, `${m.game_nick} удалён навсегда`);
   } else if (b.dataset.act === 'move') {
     const d = await openForm(`Перенести ${m.game_nick} в ушедшие`, [
       { name: 'leave_type', label: 'Как ушёл', type: 'select', options: LEAVE_TYPES, required: true },

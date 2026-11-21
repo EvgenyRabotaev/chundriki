@@ -640,15 +640,22 @@ body[data-page="moments"] .page-lead { color: #c9ced1; }
 .vsheet-x { position: absolute; top: 10px; right: 12px; background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; }
 .vsheet-panel h3 { margin: 0 24px 12px 0; font-size: 20px; }
 .vsheet-panel .short { margin: 0 0 8px; }
-.btn-src { display: flex; width: 100%; margin: 4px 0 10px; text-decoration: none; padding: 10px 14px; font-size: 14px; }
-.card-people { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; font-size: 13px; }
-.card-people .lbl { color: var(--muted); }
-.card-people .chip { padding: 3px 10px; font-size: 13px; text-decoration: none; }
-.card-people .chip:hover { border-color: var(--pink); }
 .vsheet-long { margin: 0; color: var(--muted); font-size: 14px; white-space: pre-line; }
 .member.hl { border-color: var(--pink); box-shadow: 0 0 0 2px var(--pink); }
 .checks { display: flex; flex-wrap: wrap; gap: 4px 12px; max-height: 180px; overflow: auto; padding: 4px 0; }
 .check { display: inline-flex; gap: 5px; align-items: center; font-size: 14px; }
 .check input { width: auto; }
-.btn-yt { background: #e02b27; color: #fff; } .btn-yt:hover { background: #f0403c; }
-.btn-tt { background: #111; color: #fff; border: 1px solid #25f4ee; } .btn-tt:hover { background: #1c1c1c; }
+
+/* Компактные карточки моментов */
+.video-body { padding: 10px 14px 12px; display: flex; flex-direction: column; flex: 1; }
+.video-meta { justify-content: flex-start; margin-bottom: 6px; }
+a.platform { color: #fff; text-decoration: none; font-size: 13px; line-height: 1.5; padding: 2px 10px; }
+a.platform:hover { filter: brightness(1.15); }
+.card-people { display: flex; flex-wrap: wrap; gap: 4px 5px; align-items: center; margin-bottom: 4px; font-size: 12px; }
+.card-people .lbl { color: var(--muted); }
+.card-people .chip { padding: 1px 8px; font-size: 12px; text-decoration: none; }
+.card-people .chip:hover { border-color: var(--pink); }
+.video h3 { margin: 2px 0 4px; font-size: 17px; line-height: 1.25; }
+.video .short { margin: 0 0 6px; font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.video .more-btn { margin-top: auto; align-self: flex-start; padding-top: 2px; }
+.videos { align-items: stretch; }

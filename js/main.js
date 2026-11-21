@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=43';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=45';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
@@ -140,20 +140,22 @@ function renderVideos(videos) {
     const thumb = thumbnail(v.url);
     const isVertical = platform === 'tiktok' || v.is_short;
     const media = src
-      ? `<button class="player ${isVertical ? 'vertical' : ''}" data-src="${esc(src)}" aria-label="Смотреть: ${esc(v.title)}">
+      ? `<button class="player ${isVertical && thumb ? 'vertical' : ''}" data-vertical="${isVertical ? 1 : ''}" data-src="${esc(src)}" aria-label="Смотреть: ${esc(v.title)}">
            ${thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy">` : `<span class="player-ph">${esc(PLATFORM_LABEL[platform])}</span>`}
            <span class="play">▶</span>
          </button>`
       : `<a class="player link-only" href="${esc(v.url)}" target="_blank" rel="noopener"><span class="player-ph">${esc(SRC_LABEL[platform] || 'Открыть видео')} ↗</span></a>`;
+    const people = (v.video_members || []).map((x) => videoMembers.get(x.member_id)).filter(Boolean);
+    const srcUrl = safeUrl(v.url);
+    const plate = srcUrl ? `<a class="platform p-${platform}" href="${esc(srcUrl)}" target="_blank" rel="noopener">${esc(SRC_LABEL[platform] || 'Открыть видео')}</a>` : '';
     return `
       <article class="video">
         ${media}
         <div class="video-body">
-          <div class="video-meta"><span class="platform p-${platform}">${esc(PLATFORM_LABEL[platform])}</span></div>
+          <div class="video-meta">${plate}</div>
+          ${people.length ? `<div class="card-people"><span class="lbl">В кадре:</span>${people.map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div>` : ''}
           <h3>${esc(v.title)}</h3>
           ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
-          ${safeUrl(v.url) ? `<a class="btn btn-yt btn-src ${platform === 'tiktok' ? 'btn-tt' : ''}" href="${esc(v.url)}" target="_blank" rel="noopener">${platform === 'youtube' ? '▶ ' : platform === 'tiktok' ? '♪ ' : ''}${esc(SRC_LABEL[platform] || 'Открыть видео')}</a>` : ''}
-          ${(v.video_members || []).map((x) => videoMembers.get(x.member_id)).filter(Boolean).length ? `<div class="card-people"><span class="lbl">В кадре:</span>${(v.video_members || []).map((x) => videoMembers.get(x.member_id)).filter(Boolean).map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div>` : ''}
           <button type="button" class="more-btn" data-id="${v.id}">Подробнее ▴</button>
         </div>
       </article>`;
@@ -170,7 +172,7 @@ videoEl.addEventListener('click', (e) => {
   iframe.loading = 'lazy';
   iframe.referrerPolicy = 'strict-origin-when-cross-origin';
   const wrap = document.createElement('div');
-  wrap.className = 'player playing' + (p.classList.contains('vertical') ? ' vertical' : '');
+  wrap.className = 'player playing' + (p.dataset.vertical ? ' vertical' : '');
   wrap.appendChild(iframe);
   p.replaceWith(wrap);
 });

@@ -1,4 +1,4 @@
-import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents } from './data.js?v=45';
+import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=46';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
 import { DISCORD_INVITE } from './config.js';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
@@ -131,8 +131,24 @@ const videoEl = document.getElementById('video-list') || document.createElement(
 const SRC_LABEL = { youtube: 'Смотреть на YouTube', tiktok: 'Открыть в TikTok', vk: 'Открыть в VK Видео' };
 let videoRows = [];
 let videoMembers = new Map();
+let commentCounts = new Map();
+let expandedId = null;
+const vUser = { session: null, canPost: false, admin: false };
+const vState = new Map(); // id -> { comments, draft }
+
+function relDate(d) {
+  const t = new Date(d).getTime(); if (!t) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  const plural = (n, a, b, c) => { const x = n % 10, y = n % 100; return (x === 1 && y !== 11) ? a : (x >= 2 && x <= 4 && (y < 12 || y > 14)) ? b : c; };
+  if (s < 60) return 'только что';
+  if (s < 3600) { const n = Math.floor(s / 60); return `${n} ${plural(n, 'минуту', 'минуты', 'минут')} назад`; }
+  if (s < 86400) { const n = Math.floor(s / 3600); return `${n} ${plural(n, 'час', 'часа', 'часов')} назад`; }
+  if (s < 86400 * 30) { const n = Math.floor(s / 86400); return `${n} ${plural(n, 'день', 'дня', 'дней')} назад`; }
+  return fmtLong(d);
+}
+
 function renderVideos(videos) {
-  videoRows = videos;
+  videoRows = videos; expandedId = null;
   if (!videos.length) { videoEl.innerHTML = '<p class="muted">Скоро здесь появятся наши лучшие моменты.</p>'; return; }
   videoEl.innerHTML = videos.map((v) => {
     const { platform } = parseVideoUrl(v.url);
@@ -149,85 +165,147 @@ function renderVideos(videos) {
     const srcUrl = safeUrl(v.url);
     const plate = srcUrl ? `<a class="platform p-${platform}" href="${esc(srcUrl)}" target="_blank" rel="noopener">${esc(SRC_LABEL[platform] || 'Открыть видео')}</a>` : '';
     return `
-      <article class="video">
-        ${media}
-        <div class="video-body">
-          <div class="video-meta">${plate}</div>
-          ${people.length ? `<div class="card-people"><span class="lbl">В кадре:</span>${people.map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div>` : ''}
-          <h3>${esc(v.title)}</h3>
-          ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
-          <button type="button" class="more-btn" data-id="${v.id}">Подробнее ▴</button>
+      <article class="video" data-id="${v.id}">
+        <div class="video-main">
+          ${media}
+          <div class="video-body">
+            <div class="video-meta">${plate}</div>
+            ${people.length ? `<div class="card-people"><span class="lbl">В кадре:</span>${people.map((m) => `<a class="chip" href="roster.html#m${m.id}">${esc(m.game_nick)}</a>`).join('')}</div>` : ''}
+            <h3>${esc(v.title)}</h3>
+            ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
+            <div class="video-foot">
+              <button type="button" class="more-btn" data-id="${v.id}">Подробнее ▾</button>
+              <button type="button" class="cm-btn" data-id="${v.id}" aria-label="Комментарии">💬 <span class="cm-n">${commentCounts.get(v.id) || 0}</span></button>
+            </div>
+          </div>
         </div>
+        <div class="video-side" hidden></div>
       </article>`;
   }).join('');
 }
 
-videoEl.addEventListener('click', (e) => {
-  const p = e.target.closest('button.player');
-  if (!p) return;
-  const iframe = document.createElement('iframe');
-  iframe.src = p.dataset.src;
-  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
-  iframe.allowFullscreen = true;
-  iframe.loading = 'lazy';
-  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-  const wrap = document.createElement('div');
-  wrap.className = 'player playing' + (p.dataset.vertical ? ' vertical' : '');
-  wrap.appendChild(iframe);
-  p.replaceWith(wrap);
-});
-
-// Нижняя шторка «Подробнее»
-let sheet = null;
-function closeSheet() {
-  if (!sheet) return;
-  const s = sheet; sheet = null; s.classList.remove('open');
-  setTimeout(() => s.remove(), 250);
+function collapseVideo() {
+  if (expandedId == null) return;
+  const el = videoEl.querySelector(`.video[data-id="${expandedId}"]`);
+  expandedId = null;
+  if (!el) return;
+  el.classList.remove('expanded');
+  const side = el.querySelector('.video-side'); side.hidden = true; side.innerHTML = '';
 }
-function openSheet(v) {
-  closeSheet();
-  const s = document.createElement('div');
-  s.className = 'vsheet';
-  s.innerHTML = `<div class="vsheet-bg" data-close></div>
-    <div class="vsheet-panel" role="dialog" aria-modal="true" aria-label="${esc(v.title)}">
-      <div class="vsheet-grab" aria-hidden="true"></div>
-      <button type="button" class="vsheet-x" data-close aria-label="Закрыть">✕</button>
-      <h3>${esc(v.title)}</h3>
-      ${v.short_desc ? `<p class="short">${esc(v.short_desc)}</p>` : ''}
-      ${v.long_desc ? `<p class="vsheet-long">${esc(v.long_desc)}</p>` : ''}
-    </div>`;
-  document.body.appendChild(s);
-  sheet = s;
-  requestAnimationFrame(() => s.classList.add('open'));
-  s.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeSheet(); });
-  const panel = s.querySelector('.vsheet-panel');
-  let y0 = null, dy = 0;
-  panel.addEventListener('touchstart', (e) => { if (panel.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
-  panel.addEventListener('touchmove', (e) => {
-    if (y0 == null) return;
-    dy = Math.max(0, e.touches[0].clientY - y0);
-    panel.style.transition = 'none'; panel.style.transform = `translateY(${dy}px)`;
-  }, { passive: true });
-  panel.addEventListener('touchend', () => {
-    if (y0 == null) return;
-    panel.style.transition = ''; panel.style.transform = '';
-    if (dy > 80) closeSheet();
-    y0 = null;
+
+function sideHtml(v) {
+  const desc = v.long_desc || v.short_desc || '';
+  return `<div class="side-head"><h4>О видео</h4><button type="button" class="side-close" aria-label="Свернуть">✕ Свернуть</button></div>
+    ${desc ? `<p class="side-desc">${esc(desc)}</p>` : ''}
+    <div class="vcomments" data-vid="${v.id}"></div>`;
+}
+
+function drawComments(id) {
+  const box = videoEl.querySelector(`.vcomments[data-vid="${id}"]`);
+  if (!box) return;
+  const st = vState.get(id) || { comments: null, draft: '' };
+  if (st.comments == null) { box.innerHTML = '<h3>Комментарии</h3><p class="muted">Загружаем…</p>'; return; }
+  const uid = vUser.session?.user?.id;
+  const list = st.comments.length ? st.comments.map((c) => {
+    const ava = safeUrl(c.author_avatar || '');
+    const del = (uid && (c.user_id === uid || vUser.admin)) ? `<button type="button" class="c-del" data-id="${c.id}" title="Удалить" aria-label="Удалить комментарий">${vUser.admin && c.user_id !== uid ? '🗑' : '×'}</button>` : '';
+    const nm = esc(c.author_name || 'Игрок');
+    return `<div class="c-item">${ava ? `<img class="c-ava" src="${esc(ava)}" alt="" width="36" height="36" loading="lazy" referrerpolicy="no-referrer">` : '<span class="c-ava ph"></span>'}
+      <div class="c-main"><div class="c-head">${c.member_id ? `<a class="c-name" href="roster.html#m${c.member_id}">${nm}</a>` : `<b class="c-name">${nm}</b>`}<time title="${esc(fmtDateTimeMsk(c.created_at))}">${esc(relDate(c.created_at))}</time>${del}</div>
+      <div class="c-body">${esc(c.body).replace(/\n/g, '<br>')}</div></div></div>`;
+  }).join('') : '<p class="muted">Пока никто не написал. Будь первым!</p>';
+  let form;
+  if (!vUser.session) form = '<div class="c-note"><span>Войдите через Discord, чтобы комментировать</span><button type="button" class="auth-login c-login">Войти</button></div>';
+  else if (!vUser.canPost) form = '<p class="c-note muted">Комментировать могут только участники клана с ролью «Чундрики» в Discord.</p>';
+  else form = `<form class="c-form"><textarea maxlength="1000" rows="3" placeholder="Ваш комментарий…" required>${esc(st.draft)}</textarea><div class="c-actions"><span class="c-count">${st.draft.length}/1000</span><button type="submit" class="btn">Отправить</button></div></form>`;
+  box.innerHTML = `<h3>Комментарии (${st.comments.length})</h3><div class="c-list">${list}</div>${form}`;
+  const ta = box.querySelector('textarea');
+  if (ta) ta.addEventListener('input', () => { st.draft = ta.value; box.querySelector('.c-count').textContent = `${st.draft.length}/1000`; });
+}
+function setCount(id, n) {
+  commentCounts.set(id, n);
+  const b = videoEl.querySelector(`.cm-btn[data-id="${id}"] .cm-n`); if (b) b.textContent = n;
+}
+
+function expandVideo(id) {
+  const v = videoRows.find((x) => x.id == id); if (!v) return;
+  const el = videoEl.querySelector(`.video[data-id="${id}"]`); if (!el) return;
+  if (expandedId == id) return;
+  collapseVideo();
+  expandedId = v.id;
+  const side = el.querySelector('.video-side');
+  side.innerHTML = sideHtml(v); side.hidden = false;
+  el.classList.add('expanded');
+  if (!vState.has(v.id)) vState.set(v.id, { comments: null, draft: '' });
+  drawComments(v.id);
+  getVideoComments(v.id).then((r) => { vState.get(v.id).comments = r; setCount(v.id, r.length); drawComments(v.id); })
+    .catch((err) => { console.error(err); const box = el.querySelector('.vcomments'); if (box) box.innerHTML = '<p class="error-text">Не удалось загрузить комментарии.</p>'; });
+  requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+}
+
+videoEl.addEventListener('click', async (e) => {
+  const p = e.target.closest('button.player');
+  if (p) {
+    const iframe = document.createElement('iframe');
+    iframe.src = p.dataset.src;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+    iframe.allowFullscreen = true;
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    const wrap = document.createElement('div');
+    wrap.className = 'player playing' + (p.dataset.vertical ? ' vertical' : '');
+    wrap.appendChild(iframe);
+    p.replaceWith(wrap);
+    return;
+  }
+  const more = e.target.closest('.more-btn, .cm-btn');
+  if (more) { expandVideo(more.dataset.id); return; }
+  if (e.target.closest('.side-close')) {
+    const el = e.target.closest('.video'); collapseVideo();
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return;
+  }
+  if (e.target.closest('.c-login')) {
+    try { await signInDiscord(location.origin + location.pathname + location.search); } catch (err) { toast('Не удалось начать вход: ' + err.message, true); }
+    return;
+  }
+  const del = e.target.closest('.c-del');
+  if (del && confirm('Удалить комментарий?')) {
+    const id = +del.closest('.vcomments').dataset.vid;
+    try {
+      await deleteVideoComment(del.dataset.id);
+      const st = vState.get(id); st.comments = st.comments.filter((c) => String(c.id) !== del.dataset.id);
+      setCount(id, st.comments.length); drawComments(id);
+    } catch (err) { toast(err.message, true); }
+  }
+});
+videoEl.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const box = e.target.closest('.vcomments'); if (!box) return;
+  const id = +box.dataset.vid, st = vState.get(id);
+  const text = st.draft.trim(); if (!text) return;
+  const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+  try { st.comments.push(await addVideoComment(id, text)); st.draft = ''; setCount(id, st.comments.length); drawComments(id); }
+  catch (err) { toast(err.message, true); btn.disabled = false; }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.querySelector('dialog[open]')) collapseVideo(); });
+
+if (document.getElementById('video-list')) {
+  const loadVUser = async (s) => {
+    vUser.session = s; vUser.canPost = false; vUser.admin = false;
+    if (s) { try { [vUser.canPost, vUser.admin] = await Promise.all([isChundrik(), isAdmin()]); } catch {} }
+    if (expandedId != null) drawComments(expandedId);
+  };
+  getSession().then(loadVUser).catch(() => loadVUser(null));
+  onAuthChange((s) => { if ((s?.user?.id) !== (vUser.session?.user?.id)) setTimeout(() => loadVUser(s), 0); });
+  Promise.all([getVideos(), getMembers().catch(() => []), getVideoCommentCounts().catch(() => new Map())]).then(([v, ms, cc]) => {
+    videoMembers = new Map(ms.map((m) => [m.id, m]));
+    commentCounts = cc;
+    renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v);
+  }).catch((err) => {
+    console.error(err);
+    videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';
   });
 }
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
-videoEl.addEventListener('click', (e) => {
-  const b = e.target.closest('.more-btn'); if (!b) return;
-  const v = videoRows.find((x) => x.id == b.dataset.id); if (v) openSheet(v);
-});
-
-if (document.getElementById('video-list')) Promise.all([getVideos(), getMembers().catch(() => [])]).then(([v, ms]) => {
-  videoMembers = new Map(ms.map((m) => [m.id, m]));
-  renderVideos(videoEl.dataset.limit ? v.slice(0, +videoEl.dataset.limit) : v);
-}).catch((err) => {
-  console.error(err);
-  videoEl.innerHTML = '<p class="error-text">Не удалось загрузить видео.</p>';
-});
 
 // ---------- Новости ----------
 const newsEl = document.getElementById('news-list');

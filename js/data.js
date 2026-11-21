@@ -80,6 +80,17 @@ export async function getComments(newsId) {
 export async function addComment(newsId, body) {
   return unwrap(await sb.from('news_comments').insert({ news_id: newsId, body }).select('id, user_id, author_name, author_avatar, body, created_at').single());
 }
+export async function getVideoCommentCounts() {
+  const rows = unwrap(await sb.from('video_comments').select('video_id'));
+  const m = new Map(); for (const r of rows) m.set(r.video_id, (m.get(r.video_id) || 0) + 1); return m;
+}
+export async function getVideoComments(videoId) {
+  return unwrap(await sb.from('video_comments').select('id, user_id, author_name, author_avatar, member_id, body, created_at').eq('video_id', videoId).order('created_at'));
+}
+export async function addVideoComment(videoId, body) {
+  return unwrap(await sb.from('video_comments').insert({ video_id: videoId, body }).select('id, user_id, author_name, author_avatar, member_id, body, created_at').single());
+}
+export async function deleteVideoComment(id) { unwrap(await sb.from('video_comments').delete().eq('id', id)); }
 export async function deleteComment(id) { unwrap(await sb.from('news_comments').delete().eq('id', id)); }
 export async function isChundrik() { return !!unwrap(await sb.rpc('is_chundrik')); }
 

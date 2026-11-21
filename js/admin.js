@@ -1,4 +1,4 @@
-import * as db from './data.js?v=48';
+import * as db from './data.js?v=50';
 import { detectPlatform, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtLong, toast, safeUrl } from './util.js?v=33';
 import { newsDetailHtml } from './news-view.js?v=33';

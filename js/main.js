@@ -1,6 +1,6 @@
 import { getMembers, getVideos, getNews, getNewsItem, getBadges, signInDiscord, signOut, getSession, onAuthChange, isAdmin, getComments, addComment, deleteComment, isChundrik, getTodayEvents, getVideoCommentCounts, getVideoComments, addVideoComment, deleteVideoComment } from './data.js?v=52';
 import { newsDetailHtml, excerpt } from './news-view.js?v=33';
-import { DISCORD_INVITE } from './config.js';
+import { DISCORD_INVITE } from './config.js?v=2';
 import { parseVideoUrl, embedSrc, thumbnail, PLATFORM_LABEL } from './video.js';
 import { esc, fmtDate, fmtMonth, fmtLong, safeUrl, toast, copyText, ROLE_CLASS } from './util.js?v=33';
 
